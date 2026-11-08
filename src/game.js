@@ -5,8 +5,8 @@ const roster = [
   {id:"mirage",model:"mirage",name:"MIRAGE",series:"GLASS FRONTIER",style:"Illusion tactician",color:"#7b9bd9",glow:"#92d7ff",speed:4.6,power:1,move:"AFTERIMAGE"},
   {id:"coil",model:"coil",name:"IRON COIL",series:"METRO CIRCUIT",style:"Pressure brawler",color:"#b84e55",glow:"#ff775d",speed:4.3,power:1.06,move:"PILE DRIVER"},
   {id:"astral",model:"astral",name:"ORACLE ZERO",series:"ASTRAL COURT",style:"Gravity controller",color:"#a4b9ef",glow:"#77a7ff",speed:4,power:1.08,move:"EVENT HORIZON"},
-  {id:"tide",model:"tide",name:"TIDEBOUND",series:"JADE COAST",style:"Flowing blade dancer",color:"#37b78b",glow:"#52dfc2",speed:4.1,power:1.1,move:"UNDERTOW"},
-  {id:"dusk",model:"dusk",name:"NIGHT VOW",series:"HOLLOW QUARTER",style:"Moonlit greatblade",color:"#9a6cb8",glow:"#b66cff",speed:4.4,power:1.13,move:"ECLIPSE ARC"},
+  {id:"tide",model:"tide",name:"TIDEBOUND",series:"JADE COAST",style:"Flowing tide dancer",color:"#37b78b",glow:"#52dfc2",speed:4.1,power:1.1,move:"UNDERTOW"},
+  {id:"dusk",model:"dusk",name:"NIGHT VOW",series:"HOLLOW QUARTER",style:"Moonlit striker",color:"#9a6cb8",glow:"#b66cff",speed:4.4,power:1.13,move:"ECLIPSE ARC"},
   {id:"glyph",model:"glyph",name:"SIGIL FORGE",series:"OLD QUARTER",style:"Runic engineer",color:"#c9a85c",glow:"#e6a947",speed:4,power:1.02,move:"RUNE ARRAY"},
   {id:"meteor",model:"meteor",name:"COMET SAINT",series:"CLOUDLINE",style:"Impact monk",color:"#e6d7b4",glow:"#fff0a8",speed:3.8,power:1.22,move:"STARFALL"}
 ];
