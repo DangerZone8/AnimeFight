@@ -39,7 +39,7 @@ export class AdaptiveCPU {
     const repeatedAttacks = total > 3 && (t.attack + t.heavy) / total > 0.58;
     const specialHabit = total > 3 && t.special / total > 0.34;
     const close = distance < 124;
-    const danger = enemyAction === "attack" || enemyAction === "heavy" || enemyAction === "special";
+    const danger = ["attack", "heavy", "special", "punch", "kick", "super"].includes(enemyAction);
 
     // High-value defensive reads take priority over random aggression.
     if (danger && Math.random() > this.reaction) {
