@@ -86,3 +86,12 @@ test("mobile touch controls are visible and accept simultaneous multi-touch pres
   await expect(kick).not.toHaveClass(/active/);
   await session.detach();
 });
+
+test("meme-dimension fighters announce their parody intro in the browser", async ({ page }) => {
+  await page.goto("/");
+  await expect(page.getByText("ROSTER 10")).toBeVisible();
+  await page.getByRole("button", { name: /YATRA BOY/i }).click();
+  await page.getByRole("button", { name: /ENTER THE ARENA/i }).click();
+  await expect(page.locator("#dialogue-bubble")).toContainText("YATRA BOY");
+  await expect(page.locator("#dialogue-bubble")).toContainText("potatoes");
+});
