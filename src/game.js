@@ -205,7 +205,8 @@ function drawFighter(f){
   const actionName=f.action, attacking=["attack","heavy","combo","kick","uppercut","sweep","jumpPunch","jumpKick","grab","special","triple","double","cross","launcher","finisher","double-heavy"].includes(actionName);
   const phase=attacking?timeline.phase:"neutral";const wind=easeInOut(timeline.wind),strike=easeOut(timeline.strike),recovery=easeInOut(timeline.recover);
   const wave=Math.sin(elapsed*7+(f.isCPU?1.4:0)), bob=f.grounded?Math.sin(elapsed*5+(f.isCPU?1:0))*2:0;
-  let lean=actionName==="hit"?-.24:actionName==="knockdown"?-.8:actionName==="run"?.12:phase==="startup"?-.18:phase==="active"?.16:phase==="recovery"?-.12:0;
+  const hurtProgress=actionName==="hit"||actionName==="knockdown"?1-clamp(f.actionTime/Math.max(.001,f.actionDuration||.3)):0;
+  let lean=actionName==="hit"?-.24-Math.sin(hurtProgress*Math.PI)*.42:actionName==="knockdown"?-1.22:actionName==="run"?.12:phase==="startup"?-.18:phase==="active"?.16:phase==="recovery"?-.12:0;
   let armA=-.55, armB=.35, legA=.08, legB=-.08, torsoY=-105, headY=-151;
   if(actionName==="guard"){armA=-1.2;armB=-.55;}
   if(actionName==="attack"||actionName==="heavy"||actionName==="combo"||actionName==="triple"||actionName==="double"||actionName==="cross"||actionName==="launcher"||actionName==="finisher"||actionName==="double-heavy"){
@@ -218,7 +219,8 @@ function drawFighter(f){
   if(actionName==="grab"){armA=phase==="active"?-1.15+strike*1.1:-1.25+wind*.18;armB=phase==="active"?-.9+strike*.65:-.8;}
   if(actionName==="special"){armA=phase==="active"?-1.7+strike*1.6:-1.7+wind*.2;armB=phase==="active"?-1.5+strike*1.1:-1.5;}
   if(actionName==="hit"){armA=1.25;armB=-1.25;legA=-.3;legB=.25;}
-  if(actionName==="knockdown"){armA=1.6;armB=-1.4;legA=1.2;legB=-.8;}
+  if(actionName==="knockdown"){armA=1.6;armB=-1.4;legA=1.2;legB=-.8;torsoY=-73;headY=-118;}
+  if(actionName==="hit"){armA=1.25+hurtProgress*.35;armB=-1.25-hurtProgress*.2;legA=-.3+hurtProgress*.18;legB=.25-hurtProgress*.12;}
   if(actionName==="run"){armA=-.9+wave*.2;armB=.8-wave*.2;legA=.65;legB=-.65;}
   if(actionName==="jump"){legA=-.7;legB=.65;armA=-1.25;armB=-.9;}
   c.save();c.translate(x,ground+bob);c.scale(face,1);c.rotate(lean);
