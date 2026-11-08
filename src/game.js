@@ -1,19 +1,28 @@
 import { AdaptiveCPU } from "./ai.js";
 
 const roster = [
-  {id:"son",name:"SON GOKU",series:"DRAGON BALL",style:"Saiyan striker",color:"#ff9c32",glow:"#ff6b25",speed:4.2,power:1.12,move:"KAMEHAMEHA"},
-  {id:"ninja",name:"NARUTO",series:"NARUTO",style:"Ninja brawler",color:"#ff7a27",glow:"#ffb13d",speed:4.6,power:1,move:"RASENGAN"},
-  {id:"captain",name:"LUFFY",series:"ONE PIECE",style:"Rubber brawler",color:"#e84a43",glow:"#ffca65",speed:4.3,power:1.06,move:"GUM-GUM"},
-  {id:"sorcerer",name:"GOJO",series:"JUJUTSU KAISEN",style:"Limitless tactician",color:"#d7e6ff",glow:"#5b9dff",speed:4,power:1.08,move:"BLUE VOID"},
-  {id:"blade",name:"TANJIRO",series:"DEMON SLAYER",style:"Breathing swordsman",color:"#37b78b",glow:"#52e8cb",speed:4.1,power:1.1,move:"WATER WHEEL"},
-  {id:"reaper",name:"ICHIGO",series:"BLEACH",style:"Soul reaper",color:"#ff7b5e",glow:"#ff3f4f",speed:4.4,power:1.13,move:"GETSUGA"},
-  {id:"homunculus",name:"EDWARD",series:"FULLMETAL ALCHEMIST",style:"Alchemist",color:"#dfc05e",glow:"#f3a849",speed:4,power:1.02,move:"ALCHEMY"},
-  {id:"hero",name:"SAITAMA",series:"ONE PUNCH MAN",style:"Overwhelming hero",color:"#f2cf45",glow:"#ffef80",speed:3.8,power:1.22,move:"SERIOUS STRIKE"}
+  {id:"ember",model:"ember",name:"EMBER RONIN",series:"EMBER DISTRICT",style:"Solar-edge duelist",color:"#e88b42",glow:"#ff9c55",speed:4.2,power:1.12,move:"SUNBREAK"},
+  {id:"mirage",model:"mirage",name:"MIRAGE",series:"GLASS FRONTIER",style:"Illusion tactician",color:"#7b9bd9",glow:"#92d7ff",speed:4.6,power:1,move:"AFTERIMAGE"},
+  {id:"coil",model:"coil",name:"IRON COIL",series:"METRO CIRCUIT",style:"Pressure brawler",color:"#b84e55",glow:"#ff775d",speed:4.3,power:1.06,move:"PILE DRIVER"},
+  {id:"astral",model:"astral",name:"ORACLE ZERO",series:"ASTRAL COURT",style:"Gravity controller",color:"#a4b9ef",glow:"#77a7ff",speed:4,power:1.08,move:"EVENT HORIZON"},
+  {id:"tide",model:"tide",name:"TIDEBOUND",series:"JADE COAST",style:"Flowing blade dancer",color:"#37b78b",glow:"#52dfc2",speed:4.1,power:1.1,move:"UNDERTOW"},
+  {id:"dusk",model:"dusk",name:"NIGHT VOW",series:"HOLLOW QUARTER",style:"Moonlit greatblade",color:"#9a6cb8",glow:"#b66cff",speed:4.4,power:1.13,move:"ECLIPSE ARC"},
+  {id:"glyph",model:"glyph",name:"SIGIL FORGE",series:"OLD QUARTER",style:"Runic engineer",color:"#c9a85c",glow:"#e6a947",speed:4,power:1.02,move:"RUNE ARRAY"},
+  {id:"meteor",model:"meteor",name:"COMET SAINT",series:"CLOUDLINE",style:"Impact monk",color:"#e6d7b4",glow:"#fff0a8",speed:3.8,power:1.22,move:"STARFALL"}
 ];
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("game-canvas"), ctx = canvas.getContext("2d");
 let selected = 0, player, cpu, brain, keys = new Set(), last = 0, elapsed = 0, timer = 60, running = false, paused = false, raf = 0, arena = "neon", roundOver = false, roundWins = [0,0], playerLastAction = "approach", statusTick = 0;
+let arena3d = null;
+const arena3dReady = import("./arena3d.js").then(({createArena3D}) => {
+  arena3d = createArena3D($("arena-wrap"));
+  canvas.style.display = "none";
+  return arena3d;
+}).catch(error => {
+  console.warn("3D renderer unavailable; using compatibility renderer:", error);
+  return null;
+});
 
 function drawPortrait(canvasEl, fighter) {
   const c=canvasEl.getContext("2d"), w=canvasEl.width=160,h=canvasEl.height=130;
@@ -44,6 +53,7 @@ function startGame(){
   player=new Fighter(290,hero,1); cpu=new Fighter(810,rival,-1,true);
   $("player-name").textContent=hero.name; $("cpu-name").textContent=rival.name;
   brain=new AdaptiveCPU({difficulty:$("difficulty").value,personality:$("cpu-style").value});
+  arena3dReady.then(view=>{if(view&&running){view.setArena(arena);view.setFighters(hero.model,rival.model);}});
   timer=60; elapsed=0; roundWins=[0,0]; roundOver=false; paused=false; running=true; $("round-banner").classList.add("hidden"); last=performance.now(); cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
 }
 function backToMenu(){running=false;cancelAnimationFrame(raf);$("fight-screen").classList.add("hidden");$("menu-screen").classList.remove("hidden");}
