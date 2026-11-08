@@ -1,5 +1,5 @@
 import { AdaptiveCPU } from "./ai.js";
-import { ATTACKS, isInHitRange, comboDamage, nextCombo } from "./combat.js";
+import { ATTACKS, isInHitRange, comboDamage, nextCombo, addStamina, canUseSuper, spendSuper } from "./combat.js";
 
 const roster = [
   {id:"son",name:"SON GOKU",series:"DRAGON BALL",style:"Saiyan striker",color:"#ff9c32",glow:"#ff6b25",speed:4.2,power:1.12,move:"KAMEHAMEHA"},
@@ -45,10 +45,10 @@ function startGame(){
   player=new Fighter(290,hero,1); cpu=new Fighter(810,rival,-1,true);
   $("player-name").textContent=hero.name; $("cpu-name").textContent=rival.name;
   brain=new AdaptiveCPU({difficulty:$("difficulty").value,personality:$("cpu-style").value});
-  timer=60; elapsed=0; roundWins=[0,0]; roundOver=false; paused=false; running=true; $("round-banner").classList.add("hidden"); last=performance.now(); cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
+  timer=60; elapsed=0; roundWins=[0,0]; roundOver=false; paused=false; running=true; $("round-banner").classList.add("hidden");$("super-button").disabled=true;$("super-button").classList.remove("ready"); last=performance.now(); cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
 }
 function backToMenu(){running=false;cancelAnimationFrame(raf);$("fight-screen").classList.add("hidden");$("menu-screen").classList.remove("hidden");}
-function action(f,a){if(f.cooldown>0||f.action==="hit")return false;const profile=ATTACKS[a];if(profile&&f.energy<profile.cost)return false;f.action=a;f.actionTime=a==="super"||a==="bossSuper"?0.62:a==="grab"?0.42:a==="kick"?0.36:0.23;f.cooldown=(profile?.cooldown??0.25)*(f.isCPU?brain.cooldownScale:1);f.guard=a==="guard";f.attackConnected=false;if(!f.isCPU)playerLastAction=a;return true;}
+function action(f,a){if(f.cooldown>0||f.action==="hit")return false;const profile=ATTACKS[a];if((a==="super"||a==="bossSuper")&&!canUseSuper(f.energy))return false;f.action=a;f.actionTime=a==="super"||a==="bossSuper"?0.62:a==="grab"?0.42:a==="kick"?0.36:0.23;f.cooldown=(profile?.cooldown??0.25)*(f.isCPU?brain.cooldownScale:1);f.guard=a==="guard";f.attackConnected=false;if(!f.isCPU)playerLastAction=a;return true;}
 function hit(attacker, defender, kind){
   const move=kind==="super"&&attacker.isBoss?"bossSuper":kind;
   const profile=ATTACKS[move];
@@ -56,7 +56,7 @@ function hit(attacker, defender, kind){
   attacker.attackConnected=true;
   if(defender.guard&&!profile.ignoresGuard){
     defender.health=Math.max(0,defender.health-(move==="super"||move==="bossSuper"?6:2));
-    defender.energy=Math.min(100,defender.energy+7);
+    
     return false;
   }
   attacker.combo=nextCombo(attacker.combo,attacker.comboAge);
@@ -80,7 +80,7 @@ function playerInput(){
   if(keys.has("j")){if(action(player,"punch"))hit(player,cpu,"punch");keys.delete("j");}
   if(keys.has("k")){if(action(player,"kick"))hit(player,cpu,"kick");keys.delete("k");}
   if(keys.has("g")){if(action(player,"grab"))hit(player,cpu,"grab");keys.delete("g");}
-  if(keys.has("l")&&player.energy>=35){if(action(player,"super")){player.energy-=35;hit(player,cpu,"super");keys.delete("l");}}
+  if(keys.has("l")&&canUseSuper(player.energy)){if(action(player,"super")){player.energy=spendSuper(player.energy);hit(player,cpu,"super");keys.delete("l");}}
 }
 
 function cpuThink(){
@@ -94,7 +94,7 @@ function cpuThink(){
   else if(decision==="evade"){cpu.vx=-cpu.facing*brain.moveSpeed*1.12;cpu.action="run";}
   else if(decision==="grab"){if(action(cpu,"grab"))hit(cpu,player,"grab");}
   else if(decision==="counter"){if(action(cpu,"kick"))hit(cpu,player,"kick");}
-  else if(decision==="special"&&cpu.energy>=35){if(action(cpu,"super")){cpu.energy-=35;hit(cpu,player,"super");}}
+  else if(decision==="special"&&canUseSuper(cpu.energy)){if(action(cpu,"super")){cpu.energy=spendSuper(cpu.energy);hit(cpu,player,"super");}}
   else if(decision==="heavy"){if(action(cpu,"kick"))hit(cpu,player,"kick");}
   else if(decision==="attack"){if(action(cpu,"punch"))hit(cpu,player,"punch");}
 }
@@ -115,7 +115,7 @@ function update(dt){
     if(!f.guard&&f.action==="guard")f.action="idle";
   }
   if(timer<=0||player.health<=0||cpu.health<=0)finishRound();
-  $("player-health").style.width=player.health+"%";$("cpu-health").style.width=cpu.health+"%";$("player-energy").style.width=player.energy+"%";$("cpu-energy").style.width=cpu.energy+"%";$("timer").textContent=String(Math.ceil(timer)).padStart(2,"0");
+  $("player-health").style.width=player.health+"%";$("cpu-health").style.width=cpu.health+"%";$("player-energy").style.width=player.energy+"%";$("cpu-energy").style.width=cpu.energy+"%";$("player-energy").classList.toggle("super-ready",canUseSuper(player.energy));$("cpu-energy").classList.toggle("super-ready",canUseSuper(cpu.energy));$("super-button").disabled=!canUseSuper(player.energy);$("super-button").classList.toggle("ready",canUseSuper(player.energy));$("timer").textContent=String(Math.ceil(timer)).padStart(2,"0");
 }
 function finishRound(){
   roundOver=true;const winner=player.health>cpu.health?0:cpu.health>player.health?1:2;
@@ -180,8 +180,8 @@ document.addEventListener("keydown",e=>{const k=e.key.toLowerCase();if(["arrowle
 document.addEventListener("keyup",e=>keys.delete(e.key.toLowerCase()));
 document.querySelectorAll("[data-key]").forEach(b=>{
   const k=b.dataset.key;const down=e=>{e.preventDefault();keys.add(k);b.classList.add("active");};const up=e=>{e.preventDefault();keys.delete(k);b.classList.remove("active");};
-  b.addEventListener("pointerdown",down);b.addEventListener("pointerup",up);b.addEventListener("pointerleave",up);b.addEventListener("pointercancel",up);
+  b.addEventListener("pointerdown",down);b.addEventListener("pointerup",up);b.addEventListener("pointerleave",up);b.addEventListener("pointercancel",up);b.addEventListener("lostpointercapture",up);
 });
-$("start-button").addEventListener("click",startGame);$("back-button").addEventListener("click",backToMenu);
+$("super-button").addEventListener("click",()=>{if(player&&canUseSuper(player.energy)){keys.add("l");}});\n$("start-button").addEventListener("click",startGame);$("back-button").addEventListener("click",backToMenu);
 $("pause-button").addEventListener("click",()=>{paused=!paused;$("pause-button").textContent=paused?"▶ RESUME":"Ⅱ PAUSE";});
-$("rematch-button").addEventListener("click",()=>{if(player&&cpu){player.health=cpu.health=100;player.energy=cpu.energy=0;player.x=290;cpu.x=810;roundWins=[0,0];elapsed=0;timer=60;roundOver=false;paused=false;$("round-banner").classList.add("hidden");}});
+$("rematch-button").addEventListener("click",()=>{if(player&&cpu){player.health=cpu.health=100;player.energy=cpu.energy=0;player.x=290;cpu.x=810;roundWins=[0,0];elapsed=0;timer=60;roundOver=false;paused=false;$("round-banner").classList.add("hidden");$("super-button").disabled=true;$("super-button").classList.remove("ready");}});
