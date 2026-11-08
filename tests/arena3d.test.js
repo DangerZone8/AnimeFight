@@ -37,3 +37,11 @@ test("combo input is recorded and chained during recovery cancel windows", () =>
   assert.ok(game.includes('seq.endsWith("jjk")?"launcher"'));
   assert.ok(game.includes('seq.endsWith("jkk")?"finisher"'));
 });
+
+test("2D animation uses articulated two-bone limbs and squash/stretch follow-through", () => {
+  assert.ok(game.includes("const squash=actionName===\"knockdown\""));
+  assert.ok(game.includes("const leg=(angle,offset,front=false)"));
+  assert.ok(game.includes("const bend=actionName===\"guard\""));
+  assert.ok(game.includes("const flow=Math.sin(elapsed*8"));
+  assert.ok(game.includes("c.lineWidth=5+strike*4"));
+});
