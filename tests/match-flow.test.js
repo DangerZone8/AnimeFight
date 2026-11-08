@@ -21,12 +21,15 @@ test("round flow uses 60-second rounds and first-to-two scoring with draws", () 
   assert.ok(html.includes('id="result-panel"'));
 });
 
-test("controls include movement, jump, crouch, block, punch, kick, grab and full-meter super", () => {
-  for (const key of ['"arrowleft"','"arrowright"','"arrowup"','"arrowdown"','"guard"','"numpad1"','"numpad2"','"numpad3"','"numpad0"']) assert.ok(game.includes(key));
+test("FightKaro-style controls include punch, kick, super, arrow jump/crouch and defensive mechanics", () => {
+  for (const key of ['"arrowup"','"arrowdown"','"j"','"k"','"g"','"l"']) assert.ok(game.includes(key));
   assert.ok(game.includes('f.energy>=100'));
-  assert.ok(game.includes('keys.has(" ")'));
-  assert.ok(html.includes('data-key="guard"'));
-  assert.ok(html.includes('data-key="i"'));
+  assert.ok(game.includes('f.crouch?"uppercut"'));
+  assert.ok(game.includes('f.crouch?"sweep"'));
+  assert.ok(game.includes('"jumpPunch"') && game.includes('"jumpKick"'));
+  assert.ok(html.includes('data-key="arrowup"'));
+  assert.ok(html.includes('data-key="arrowdown"'));
+  assert.ok(html.includes('data-key="g"'));
 });
 
 test("combo strings, local two-player mode and pause/audio controls are wired", () => {
@@ -34,4 +37,11 @@ test("combo strings, local two-player mode and pause/audio controls are wired", 
   assert.ok(game.includes('localMode=$("match-mode").value==="local"'));
   assert.ok(game.includes('controlFighter(cpu,player,"p2")'));
   for (const id of ["pause-overlay","resume-button","sound-toggle","quit-button","result-rematch","result-select"]) assert.ok(html.includes(`id="${id}"`));
+});
+
+test("political satire roster and CPU defense/grab/super are present", () => {
+  assert.ok(game.includes("NARENDRA MODI")); assert.ok(game.includes("RAHUL GANDHI"));
+  assert.ok(game.includes("player.guard&&distance<100"));
+  assert.ok(game.includes('action(cpu,"special")'));
+  assert.ok(game.includes('defender.action=kind==="sweep"?"knockdown":"hit"'));
 });
