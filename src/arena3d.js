@@ -1,8 +1,6 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
 
 const PALETTES = {
-  modi:{skin:"#c98e6d",hair:"#c8c3b6",cloth:"#e0a04a",trim:"#f4d9a0",accent:"#ff8b38",hairStyle:"swept"},
-  rahul:{skin:"#bd896e",hair:"#24232a",cloth:"#e8e5dc",trim:"#527b9e",accent:"#79b8df",hairStyle:"short"},
   ember: { skin:"#d9a17f", hair:"#f4a34c", cloth:"#263c58", trim:"#ffb84f", accent:"#ff613d", hairStyle:"crest" },
   mirage:{ skin:"#a96f52", hair:"#d7d4c7", cloth:"#354b7b", trim:"#92d7ff", accent:"#735cff", hairStyle:"flow" },
   coil:  { skin:"#e0b18e", hair:"#253044", cloth:"#a53c45", trim:"#f0d4a2", accent:"#ff775d", hairStyle:"spikes" },
@@ -14,8 +12,6 @@ const PALETTES = {
 };
 
 const FIGHTER_META = {
-  modi:{height:1.88,build:1.04,shoulder:1.02,cape:false,headgear:"none",beard:true},
-  rahul:{height:1.9,build:1.08,shoulder:1.05,cape:false,headgear:"none",beard:true},
   ember:{ height:1.92, build:1.02, shoulder:1.0, cape:false, headgear:"band" },
   mirage:{ height:1.82, build:.88, shoulder:.86, cape:true, headgear:"hood" },
   coil:{ height:1.9, build:1.18, shoulder:1.18, cape:false, headgear:"none" },
@@ -80,7 +76,6 @@ function makeFighter(id) {
   }
   mesh(new THREE.BoxGeometry(.105,.018,.018),dark,head,0,-.13,.218);
   // Signature hair silhouettes are original and deliberately varied.
-  if(p.hairStyle==="swept"){mesh(new THREE.SphereGeometry(.27,18,14),hair,head,0,.13,-.04).scale.set(1.05,.62,.98);const sweep=mesh(new THREE.ConeGeometry(.16,.42,8),hair,head,.14,.24,.02);sweep.rotation.z=-.65;}
   if(p.hairStyle==="crest"||p.hairStyle==="spikes"){
     const count=p.hairStyle==="crest"?7:9;
     for(let i=0;i<count;i++){
@@ -102,7 +97,6 @@ function makeFighter(id) {
     mesh(new THREE.SphereGeometry(.26,18,14),hair,head,0,.13,-.035).scale.set(1,.52,.96);
     if(p.hairStyle==="tied"){const knot=mesh(new THREE.SphereGeometry(.09,12,10),accent,head,0,.32,-.16);knot.scale.set(1,1.5,1);}
   }
-  if(meta.beard){const beard=mesh(new THREE.SphereGeometry(.19,16,12),hair,head,0,-.17,.12);beard.scale.set(.82,.7,.62);}
   // Character-specific accessories.
   if(meta.headgear==="band")mesh(new THREE.BoxGeometry(.48,.055,.12),trim,head,0,.16,.19);
   if(meta.headgear==="visor"){const visor=mesh(new THREE.BoxGeometry(.47,.095,.12),accent,head,0,.065,.2);visor.rotation.x=-.12;}
@@ -197,11 +191,19 @@ export function createArena3D(container) {
       const t=state.elapsed,move=Math.abs(f.vx)>.4;
       d.body.position.y=(f.y>0?0:Math.abs(Math.sin(t*9+i))* (move?.055:.018));
       d.body.scale.y=d.baseScale*(f.crouch?.72:1);d.body.position.z=f.crouch?.08:0;
-      d.body.rotation.z=move?Math.sin(t*11+i)*.045:0;
-      d.legs[0].rotation.x=move?Math.sin(t*13+i)*.48:0;
-      d.legs[1].rotation.x=move?Math.sin(t*13+i+Math.PI)*.48:0;
-      d.arms[0].rotation.x=f.action==="attack"||f.action==="heavy"||f.action==="combo"||f.action==="grab"||f.action==="special"?-1.15:Math.sin(t*8+i)*.08;
-      d.arms[1].rotation.x=f.guard?-.9:move?Math.sin(t*13+i+Math.PI)*.28:0;
+      const phase=Math.max(0,Math.min(1,1-(f.actionTime||0)/Math.max(.2,f.action==="special"?1.05:f.action==="sweep"?.72:.48)));
+      const strike=Math.sin(phase*Math.PI);
+      const punch=["attack","heavy","combo","uppercut","jumpPunch","triple","double","cross","launcher","finisher"].includes(f.action);
+      const kick=["kick","sweep","jumpKick","double-heavy"].includes(f.action);
+      d.body.rotation.z=f.action==="sweep"?-.3*strike:f.action==="knockdown"?.82:move?Math.sin(t*11+i)*.045:0;
+      d.body.position.y=f.action==="knockdown"?.08:(f.y>0?0:Math.abs(Math.sin(t*9+i))*(move?.055:.018));
+      d.legs[0].rotation.x=f.action==="sweep"?1.5*strike:kick?-1.25*strike:move?Math.sin(t*13+i)*.48:0;
+      d.legs[1].rotation.x=f.action==="sweep"?-.75*strike:move?Math.sin(t*13+i+Math.PI)*.48:0;
+      d.arms[0].rotation.x=punch?(f.action==="uppercut"?-2.05:-1.25)*strike:f.action==="grab"?-.9*strike:f.action==="special"?-1.5:Math.sin(t*8+i)*.08;
+      d.arms[1].rotation.x=f.guard?-.9:f.action==="grab"?-1.1*strike:f.action==="special"?-1.35:move?Math.sin(t*13+i+Math.PI)*.28:0;
+      d.arms[0].rotation.z=f.action==="grab"?-.45*strike:0;
+      if(f.action==="jumpPunch"||f.action==="jumpKick"){d.body.rotation.x=-.2;d.body.position.y+=.16;}
+      if(f.action==="uppercut")d.body.rotation.x=-.16*strike;
       d.aura.material.opacity=f.action==="special"?.2:.055;
       if(f.action==="special"&&previous[i]!=="special")burst(model.position.x+(f.facing>0?.9:-.9),d.accent);
       previous[i]=f.action;
