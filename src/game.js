@@ -170,7 +170,7 @@ function drawFighter(f){
   const actionName=f.action, attacking=["attack","heavy","combo","kick","uppercut","sweep","jumpPunch","jumpKick","grab","special","triple","double","cross","launcher","finisher","double-heavy"].includes(actionName);
   const phase=attacking?(t<.28?"startup":t<.62?"active":"recovery"):"neutral";
   const wave=Math.sin(elapsed*7+(f.isCPU?1.4:0)), bob=f.grounded?Math.sin(elapsed*5+(f.isCPU?1:0))*2:0;
-  const lean=actionName==="hit"?-.24:actionName==="knockdown"?-.8:actionName==="run"?.12:phase==="startup"?-.18:phase==="active"?.16:phase==="recovery"?-.12:0;
+  let lean=actionName==="hit"?-.24:actionName==="knockdown"?-.8:actionName==="run"?.12:phase==="startup"?-.18:phase==="active"?.16:phase==="recovery"?-.12:0;
   let armA=-.55, armB=.35, legA=.08, legB=-.08, torsoY=-105, headY=-151;
   if(actionName==="guard"){armA=-1.2;armB=-.55;}
   if(actionName==="attack"||actionName==="heavy"||actionName==="combo"||actionName==="triple"||actionName==="double"||actionName==="cross"||actionName==="launcher"||actionName==="finisher"||actionName==="double-heavy"){
