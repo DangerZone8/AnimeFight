@@ -6,6 +6,10 @@
   "scripts": {
     "dev": "node scripts/serve.js",
     "build": "node scripts/build-check.js",
-    "test": "node --test"
+    "test": "node --test",
+    "test:e2e": "playwright test"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.56.1"
   }
 }
