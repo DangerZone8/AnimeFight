@@ -13,7 +13,7 @@ test("roster remains eight distinct original anime fighter identities", () => {
 test("2D canvas renderer is active and does not load WebGL", () => {
   assert.ok(game.includes('const canvas = $("game-canvas"), ctx = canvas.getContext("2d")'));
   assert.ok(game.includes("function drawFighter(f){")); assert.ok(game.includes("function drawArena(){"));
-  assert.ok(game.includes("ctx.clearRect(0,0,1100,520);drawArena();drawFighter(player);drawFighter(cpu);"));
+  assert.ok(game.includes("ctx.clearRect(0,0,1100,520);drawArena();if(!spriteRenderer.draw(ctx,player,elapsed))drawFighter(player);if(!spriteRenderer.draw(ctx,cpu,elapsed))drawFighter(cpu);"));
   assert.ok(!game.includes('import("./arena3d.js")')); assert.ok(html.includes("2D anime-inspired arena fighter"));
 });
 test("2D fighter animation includes articulated limbs and move-specific poses", () => {
