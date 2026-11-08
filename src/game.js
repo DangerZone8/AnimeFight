@@ -182,6 +182,6 @@ document.querySelectorAll("[data-key]").forEach(b=>{
   const k=b.dataset.key;const down=e=>{e.preventDefault();keys.add(k);b.classList.add("active");};const up=e=>{e.preventDefault();keys.delete(k);b.classList.remove("active");};
   b.addEventListener("pointerdown",down);b.addEventListener("pointerup",up);b.addEventListener("pointerleave",up);b.addEventListener("pointercancel",up);b.addEventListener("lostpointercapture",up);
 });
-$("super-button").addEventListener("click",()=>{if(player&&canUseSuper(player.energy)){keys.add("l");}});\n$("start-button").addEventListener("click",startGame);$("back-button").addEventListener("click",backToMenu);
+$("start-button").addEventListener("click",startGame);$("back-button").addEventListener("click",backToMenu);
 $("pause-button").addEventListener("click",()=>{paused=!paused;$("pause-button").textContent=paused?"▶ RESUME":"Ⅱ PAUSE";});
 $("rematch-button").addEventListener("click",()=>{if(player&&cpu){player.health=cpu.health=100;player.energy=cpu.energy=0;player.x=290;cpu.x=810;roundWins=[0,0];elapsed=0;timer=60;roundOver=false;paused=false;$("round-banner").classList.add("hidden");$("super-button").disabled=true;$("super-button").classList.remove("ready");}});
