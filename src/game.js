@@ -96,7 +96,7 @@ function controlFighter(f,opponent,scheme){
   if(keys.has(punch)){const combo=scheme==="p1"?(queuedCombo||"attack"):"attack";if(action(f,combo==="attack"?"attack":"combo"))hit(f,opponent,combo);queuedCombo=null;keys.delete(punch);}
   if(keys.has(kick)){const combo=scheme==="p1"?(queuedCombo||"heavy"):"heavy";if(action(f,combo==="heavy"?"heavy":"combo"))hit(f,opponent,combo);queuedCombo=null;keys.delete(kick);}
   if(keys.has(grab)){if(action(f,"grab"))hit(f,opponent,"grab");keys.delete(grab);}
-  if(keys.has(super)&&f.energy>=100){if(action(f,"special")){f.energy=0;hit(f,opponent,"special");}keys.delete(super);}
+  if((keys.has(super)||(scheme==="p1"&&keys.has(" ")))&&f.energy>=100){if(action(f,"special")){f.energy=0;hit(f,opponent,"special");}keys.delete(super);}
 }
 function playerInput(){
   if(!running||paused||roundOver)return;
@@ -138,7 +138,7 @@ function update(dt){
 }
 function finishRound(){
   roundOver=true;const winner=player.health>cpu.health?0:cpu.health>player.health?1:2;
-  if(winner!==2)roundWins[winner]++;
+  if(winner===2){roundWins[0]++;roundWins[1]++;}else roundWins[winner]++;
   const text=winner===2?"DRAW":winner===0?"ROUND WON":"RIVAL WINS ROUND";
   $("round-banner").textContent=text+"  ·  "+roundWins[0]+" — "+roundWins[1];$("round-banner").classList.remove("hidden");
   $("round-score").textContent=roundWins[0]+" — "+roundWins[1];$("round-number").textContent=String(roundWins[0]+roundWins[1]+1).padStart(2,"0");
