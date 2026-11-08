@@ -96,6 +96,8 @@ class Fighter {
   constructor(x, data, facing, isCPU=false){this.potatoTime=0;this.hexTime=0;this.comedyTime=0;this.superTime=0;this.x=x;this.y=0;this.vx=0;this.vy=0;this.data=data;this.facing=facing;this.health=100;this.energy=0;this.grounded=true;this.action="idle";this.actionTime=0;this.cooldown=0;this.guard=false;this.isCPU=isCPU;this.isBoss=isCPU&&["sorcerer","hero"].includes(data.id);this.hitFlash=0;this.combo=0;this.comboAge=99;this.attackConnected=false;this.animTime=Math.random()*6;}
 }
 function startGame(){
+  const AudioCtx=window.AudioContext||window.webkitAudioContext;
+  if(AudioCtx){try{audioContext ||= new AudioCtx();if(audioContext.state==="suspended")audioContext.resume();}catch(error){console.warn("Audio initialization unavailable:",error);}}
   $("menu-screen").classList.add("hidden"); $("fight-screen").classList.remove("hidden");
   arena=$("arena").value; const hero=roster[selected], rival=roster[(selected+3)%roster.length];
   player=new Fighter(290,hero,1); cpu=new Fighter(810,rival,-1,true);
