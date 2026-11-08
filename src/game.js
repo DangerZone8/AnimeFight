@@ -1,4 +1,5 @@
 import { AdaptiveCPU } from "./ai.js";
+import { ATTACKS, isInHitRange, comboDamage, nextCombo } from "./combat.js";
 
 const roster = [
   {id:"son",name:"SON GOKU",series:"DRAGON BALL",style:"Saiyan striker",color:"#ff9c32",glow:"#ff6b25",speed:4.2,power:1.12,move:"KAMEHAMEHA"},
@@ -36,7 +37,7 @@ function renderRoster(){
 renderRoster();
 
 class Fighter {
-  constructor(x, data, facing, isCPU=false){this.x=x;this.y=0;this.vx=0;this.vy=0;this.data=data;this.facing=facing;this.health=100;this.energy=0;this.grounded=true;this.action="idle";this.actionTime=0;this.cooldown=0;this.guard=false;this.isCPU=isCPU;this.hitFlash=0;this.combo=0;}
+  constructor(x, data, facing, isCPU=false){this.x=x;this.y=0;this.vx=0;this.vy=0;this.data=data;this.facing=facing;this.health=100;this.energy=0;this.grounded=true;this.action="idle";this.actionTime=0;this.cooldown=0;this.guard=false;this.isCPU=isCPU;this.hitFlash=0;this.combo=0;this.comboAge=99;this.attackConnected=false;this.animTime=Math.random()*6;}
 }
 function startGame(){
   $("menu-screen").classList.add("hidden"); $("fight-screen").classList.remove("hidden");
@@ -47,13 +48,21 @@ function startGame(){
   timer=60; elapsed=0; roundWins=[0,0]; roundOver=false; paused=false; running=true; $("round-banner").classList.add("hidden"); last=performance.now(); cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
 }
 function backToMenu(){running=false;cancelAnimationFrame(raf);$("fight-screen").classList.add("hidden");$("menu-screen").classList.remove("hidden");}
-function action(f,a){if(f.cooldown>0||f.action==="hit")return false;f.action=a;f.actionTime=a==="special"?0.48:a==="heavy"?0.36:a==="attack"?0.23:0.3;f.cooldown=a==="special"?0.85:a==="heavy"?0.48:0.27;f.guard=a==="guard";if(!f.isCPU)playerLastAction=a;return true;}
+function action(f,a){if(f.cooldown>0||f.action==="hit")return false;f.action=a;f.actionTime=a==="special"?0.48:a==="heavy"?0.36:a==="attack"?0.23:0.3;f.cooldown=a==="special"?0.85:a==="heavy"?0.48:0.27;f.guard=a==="guard";f.attackConnected=false;if(!f.isCPU)playerLastAction=a;return true;}
 function hit(attacker, defender, kind){
-  const reach=kind==="special"?260:kind==="heavy"?115:88;
-  if(Math.abs(attacker.x-defender.x)>reach)return false;
+  const profile=ATTACKS[kind];
+  if(!profile||attacker.attackConnected||!isInHitRange(attacker,defender,profile.reach))return false;
+  attacker.attackConnected=true;
   if(defender.guard){defender.health=Math.max(0,defender.health-(kind==="special"?5:2));defender.energy=Math.min(100,defender.energy+7);return false;}
-  const damage=(kind==="special"?23:kind==="heavy"?13:7)*attacker.data.power;
-  defender.health=Math.max(0,defender.health-damage);defender.energy=Math.min(100,defender.energy+12);attacker.energy=Math.min(100,attacker.energy+(kind==="special"?0:8));defender.action="hit";defender.actionTime=.2;defender.vx=attacker.facing*(kind==="heavy"?8:4);defender.hitFlash=.15;return true;
+  attacker.combo=nextCombo(attacker.combo,attacker.comboAge);
+  attacker.comboAge=0;
+  const damage=comboDamage(profile.damage*attacker.data.power,attacker.combo);
+  defender.health=Math.max(0,defender.health-damage);
+  defender.energy=Math.min(100,defender.energy+12);
+  attacker.energy=Math.min(100,attacker.energy+(kind==="special"?0:8));
+  defender.action="hit";defender.actionTime=.2;defender.vx=attacker.facing*profile.push;defender.hitFlash=.15;
+  $("cpu-status").textContent=(attacker.isCPU?"CPU":"PLAYER")+" COMBO ×"+attacker.combo;
+  return true;
 }
 function playerInput(){
   if(!running||paused||roundOver)return;
@@ -107,24 +116,37 @@ function finishRound(){
   else{$("round-banner").textContent=(roundWins[0]>roundWins[1]?"VICTORY":"DEFEAT")+"  ·  "+roundWins[0]+" — "+roundWins[1];}
 }
 function drawFighter(f){
-  const x=f.x,y=414-f.y,face=f.facing, c=ctx; c.save();c.translate(x,y);c.scale(face,1);
-  if(f.hitFlash>0){c.globalAlpha=.5+Math.sin(elapsed*40)*.3;}
-  const col=f.data.color;
+  const x=f.x,y=414-f.y,face=f.facing,c=ctx;
+  const moving=Math.abs(f.vx)>0.8, attacking=["attack","heavy","special"].includes(f.action);
+  const phase=f.animTime, bob=f.grounded?(moving?Math.abs(Math.sin(phase*12))*3:Math.sin(phase*2)*1.5):0;
+  const lean=attacking?Math.min(13,f.actionTime*35):moving?3:0;
+  c.save();c.translate(x,y-bob);c.scale(face,1);
+  if(f.hitFlash>0)c.globalAlpha=.55+Math.sin(elapsed*40)*.3;
+  const col=f.data.color, skin="#efc5a5", dark="#17172a";
   c.fillStyle="#05071180";c.beginPath();c.ellipse(0,5,37,9,0,0,Math.PI*2);c.fill();
-  c.fillStyle=f.data.glow+"55";c.beginPath();c.arc(0,-76,48,0,Math.PI*2);c.fill();
-  // Original, graphic anime-inspired fighter silhouette.
-  c.fillStyle="#20243c";c.fillRect(-19,-57,14,48);c.fillRect(6,-57,14,48);
-  c.fillStyle=col;c.beginPath();c.moveTo(-24,-108);c.lineTo(23,-108);c.lineTo(30,-56);c.lineTo(-27,-56);c.closePath();c.fill();
-  c.fillStyle="#f0c7a9";c.beginPath();c.arc(0,-128,22,0,Math.PI*2);c.fill();
-  c.fillStyle="#17172a";c.beginPath();c.moveTo(-23,-134);c.lineTo(-25,-158);c.lineTo(-8,-148);c.lineTo(2,-165);c.lineTo(14,-147);c.lineTo(26,-154);c.lineTo(20,-128);c.lineTo(8,-139);c.lineTo(-6,-132);c.closePath();c.fill();
-  c.fillStyle="#20203a";c.fillRect(-12,-130,7,3);c.fillRect(6,-130,7,3);
-  c.strokeStyle="#20203a";c.lineWidth=3;c.beginPath();c.moveTo(-5,-117);c.lineTo(5,-117);c.stroke();
-  c.strokeStyle=col;c.lineWidth=12;c.lineCap="round";c.beginPath();
-  const arm=f.action==="attack"||f.action==="heavy"||f.action==="special"?32:20;
-  c.moveTo(17,-98);c.lineTo(arm,-92);c.stroke();
-  c.strokeStyle="#f0c7a9";c.lineWidth=9;c.beginPath();c.moveTo(arm,-92);c.lineTo(arm+13,-88);c.stroke();
-  if(f.action==="special"){c.shadowColor=f.data.glow;c.shadowBlur=35;c.fillStyle=f.data.glow;c.beginPath();c.arc(arm+24,-88,18+Math.sin(elapsed*22)*4,0,Math.PI*2);c.fill();}
+  c.globalAlpha*=.65;c.fillStyle=f.data.glow;c.beginPath();c.ellipse(0,-78,31+Math.sin(phase*5)*4,54,0,0,Math.PI*2);c.fill();c.globalAlpha=1;
+  const stride=moving?Math.sin(phase*12)*8:0;
+  c.lineCap="round";c.lineWidth=13;c.strokeStyle=dark;
+  c.beginPath();c.moveTo(-10,-58);c.lineTo(-13-stride,-17);c.stroke();
+  c.beginPath();c.moveTo(10,-58);c.lineTo(13+stride,-17);c.stroke();
+  c.strokeStyle=col;c.lineWidth=8;c.beginPath();c.moveTo(-13-stride,-17);c.lineTo(-23-stride,-10);c.stroke();
+  c.beginPath();c.moveTo(13+stride,-17);c.lineTo(23+stride,-10);c.stroke();
+  c.fillStyle=col;c.beginPath();c.moveTo(-23,-108);c.lineTo(22,-108);c.lineTo(29,-59);c.lineTo(-28,-59);c.closePath();c.fill();
+  c.fillStyle="#ffffff35";c.beginPath();c.moveTo(-13,-103);c.lineTo(0,-103);c.lineTo(7,-65);c.lineTo(-8,-65);c.closePath();c.fill();
+  c.fillStyle=dark;c.fillRect(-25,-66,51,7);
+  c.fillStyle=skin;c.beginPath();c.ellipse(0,-130,20,24,0,0,Math.PI*2);c.fill();
+  c.fillStyle=dark;c.beginPath();c.moveTo(-21,-137);c.lineTo(-25,-157);c.lineTo(-12,-149);c.lineTo(-5,-166);c.lineTo(4,-151);c.lineTo(17,-160);c.lineTo(23,-137);c.lineTo(11,-143);c.lineTo(2,-137);c.lineTo(-8,-143);c.closePath();c.fill();
+  c.fillStyle="#fff";c.fillRect(-12,-132,8,4);c.fillRect(5,-132,8,4);
+  c.fillStyle="#20203a";c.fillRect(-9,-132,4,4);c.fillRect(8,-132,4,4);
+  c.strokeStyle="#8c4e4a";c.lineWidth=2;c.beginPath();c.moveTo(-4,-117);c.lineTo(5,-117);c.stroke();
+  const reach=attacking?39+lean:f.guard?9:moving?24+Math.sin(phase*12)*7:19;
+  c.lineCap="round";c.strokeStyle=col;c.lineWidth=12;c.beginPath();c.moveTo(17,-99);c.lineTo(reach,-91);c.stroke();
+  c.strokeStyle=skin;c.lineWidth=9;c.beginPath();c.moveTo(reach,-91);c.lineTo(reach+13,-87);c.stroke();
+  c.strokeStyle=col;c.lineWidth=11;c.beginPath();c.moveTo(-17,-99);c.lineTo(-29,-78+(f.guard?-17:0));c.stroke();
+  c.strokeStyle=skin;c.lineWidth=8;c.beginPath();c.moveTo(-29,-78+(f.guard?-17:0));c.lineTo(-34,-70+(f.guard?-17:0));c.stroke();
+  if(f.action==="special"){c.shadowColor=f.data.glow;c.shadowBlur=32;c.fillStyle=f.data.glow;c.beginPath();c.arc(reach+22,-88,16+Math.sin(phase*20)*5,0,Math.PI*2);c.fill();c.shadowBlur=0;}
   if(f.guard){c.strokeStyle="#78eaff";c.lineWidth=4;c.beginPath();c.arc(0,-88,48,-1.2,1.2);c.stroke();}
+  if(f.combo>1&&f.comboAge<.65){c.fillStyle="#fff";c.font="700 13px Rajdhani";c.textAlign="center";c.fillText("×"+f.combo,0,-184);}
   c.restore();
 }
 function drawArena(){
