@@ -85,6 +85,12 @@ function recordCombo(k){
   queuedCombo=seq.endsWith("jjj")?"triple":seq.endsWith("jjk")?"launcher":seq.endsWith("jkk")?"finisher":seq.endsWith("kk")?"double-heavy":seq.endsWith("jj")?"double":seq.endsWith("jk")?"cross":null;
 }
 function hit(attacker, defender, kind){
+  // Attacks resolve on their active animation frame, not on the input frame.
+  const startup={attack:.105,combo:.12,heavy:.16,kick:.16,uppercut:.18,sweep:.19,jumpPunch:.12,jumpKick:.17,grab:.14,special:.34,triple:.18,double:.14,cross:.15,launcher:.18,finisher:.22,"double-heavy":.19};
+  attacker.pendingHit={defender,kind,delay:startup[kind]??.14};
+  return true;
+}
+function resolveHit(attacker, defender, kind){
   const reach=kind==="special"?260:kind==="grab"?92:kind==="sweep"?118:kind==="uppercut"?112:kind==="jumpKick"?130:kind==="jumpPunch"?112:kind==="kick"?118:kind==="heavy"||kind==="double-heavy"?125:kind==="triple"||kind==="launcher"||kind==="finisher"?145:92;
   if(Math.abs(attacker.x-defender.x)>reach)return false;
   if(defender.guard&&kind!=="grab"&&kind!=="sweep"){defender.health=Math.max(0,defender.health-(kind==="special"?5:1));defender.energy=Math.min(100,defender.energy+6);defender.blockStun=.12;return false;}
@@ -144,6 +150,7 @@ function update(dt){
     f.x+=f.vx;f.x=Math.max(48,Math.min(1052,f.x));f.vx*=f.action==="hit"?.88:.72;
     f.y+=f.vy;f.vy+=30*dt;if(f.y>=0){f.y=0;f.vy=0;f.grounded=true;}
     f.cooldown=Math.max(0,f.cooldown-dt);f.actionTime=Math.max(0,f.actionTime-dt);f.hitFlash=Math.max(0,f.hitFlash-dt);
+    if(f.pendingHit){f.pendingHit.delay-=dt;if(f.pendingHit.delay<=0){const pending=f.pendingHit;f.pendingHit=null;resolveHit(f,pending.defender,pending.kind);}}
     if(f.actionTime===0&&!f.guard&&f.action!=="hit"&&f.action!=="knockdown"&&f.action!=="run"&&(f.action!=="jump"||f.grounded))f.action="idle";
     if((f.action==="hit"||f.action==="knockdown")&&f.actionTime===0)f.action="idle";
     if(!f.guard&&f.action==="guard")f.action="idle";
