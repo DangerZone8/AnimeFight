@@ -76,7 +76,7 @@ function playerInput(){
   if(keys.has("a")||keys.has("arrowleft")){player.vx=-player.data.speed;player.facing=-1;}
   if(keys.has("d")||keys.has("arrowright")){player.vx=player.data.speed;player.facing=1;}
   if((keys.has("w")||keys.has("arrowup")||keys.has(" "))&&player.grounded){player.vy=-12;player.grounded=false;}
-  if(keys.has("i")){player.guard=true;player.action="guard";}
+  if(keys.has("i")){player.guard=true;player.action="guard";playerLastAction="guard";}
   if(keys.has("j")){if(action(player,"punch"))hit(player,cpu,"punch");keys.delete("j");}
   if(keys.has("k")){if(action(player,"kick"))hit(player,cpu,"kick");keys.delete("k");}
   if(keys.has("g")){if(action(player,"grab"))hit(player,cpu,"grab");keys.delete("g");}
