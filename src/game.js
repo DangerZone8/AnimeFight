@@ -1,6 +1,6 @@
 import { AdaptiveCPU } from "./ai.js";
 
-const roster = [
+const roster = [\n  {id:"modi",model:"modi",name:"NARENDRA MODI",series:"SANSAD SHOWDOWN",style:"Incumbent orator",color:"#e0a04a",glow:"#ff8b38",speed:4,power:1.08,move:"MASTERSTROKE"},\n  {id:"rahul",model:"rahul",name:"RAHUL GANDHI",series:"SANSAD SHOWDOWN",style:"Campaign challenger",color:"#e8e5dc",glow:"#79b8df",speed:4.2,power:1.04,move:"JAN SAMVAD"},
   {id:"ember",model:"ember",name:"EMBER RONIN",series:"EMBER DISTRICT",style:"Solar-edge duelist",color:"#e88b42",glow:"#ff9c55",speed:4.2,power:1.12,move:"SUNBREAK"},
   {id:"mirage",model:"mirage",name:"MIRAGE",series:"GLASS FRONTIER",style:"Illusion tactician",color:"#7b9bd9",glow:"#92d7ff",speed:4.6,power:1,move:"AFTERIMAGE"},
   {id:"coil",model:"coil",name:"IRON COIL",series:"METRO CIRCUIT",style:"Pressure brawler",color:"#b84e55",glow:"#ff775d",speed:4.3,power:1.06,move:"PILE DRIVER"},
@@ -46,7 +46,7 @@ function renderRoster(){
 renderRoster();$("player-pick-name").textContent=roster[selected].name;$("cpu-pick-name").textContent=roster[cpuSelected].name;
 
 class Fighter {
-  constructor(x, data, facing, isCPU=false){this.x=x;this.y=0;this.vx=0;this.vy=0;this.data=data;this.facing=facing;this.health=100;this.energy=0;this.grounded=true;this.action="idle";this.actionTime=0;this.cooldown=0;this.guard=false;this.isCPU=isCPU;this.hitFlash=0;this.combo=0;}
+  constructor(x, data, facing, isCPU=false){this.x=x;this.y=0;this.vx=0;this.vy=0;this.data=data;this.facing=facing;this.health=100;this.energy=0;this.grounded=true;this.action="idle";this.actionTime=0;this.cooldown=0;this.guard=false;this.isCPU=isCPU;this.hitFlash=0;this.combo=0;this.moveName="";this.blockStun=0;}
 }
 function startGame(){
   clearTimeout(roundResetTimer);$("menu-screen").classList.add("hidden"); $("fight-screen").classList.remove("hidden");
@@ -64,7 +64,12 @@ function startGame(){
   $("pause-button").textContent="Ⅱ PAUSE"; last=performance.now(); cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
 }
 function backToMenu(){running=false;paused=false;clearTimeout(roundResetTimer);cancelAnimationFrame(raf);$("pause-overlay").classList.add("hidden");$("result-panel").classList.add("hidden");$("fight-screen").classList.add("hidden");$("menu-screen").classList.remove("hidden");}
-function action(f,a){if(f.cooldown>0||f.action==="hit")return false;f.action=a;f.actionTime=a==="special"?.62:a==="combo"?.38:a==="grab"?.32:a==="heavy"?.36:a==="attack"?.23:.3;f.cooldown=a==="special"?1.05:a==="combo"?.55:a==="grab"?.55:a==="heavy"?.48:.27;f.guard=false;if(!f.isCPU)playerLastAction=a;playSfx(a);return true;}
+function action(f,a){
+  if(f.cooldown>0||f.action==="hit"||f.action==="knockdown")return false;
+  f.action=a;f.moveName=a;f.actionTime=({special:1.05,grab:.48,uppercut:.48,sweep:.55,jumpPunch:.34,jumpKick:.4,kick:.34,heavy:.38,attack:.27,guard:.1}[a]??.34);
+  f.cooldown=({special:1.25,grab:.68,uppercut:.52,sweep:.62,jumpPunch:.42,jumpKick:.48,kick:.42,heavy:.48,attack:.3}[a]??.3);
+  f.guard=false;if(!f.isCPU)playerLastAction=a;playSfx(a);return true;
+}
 function playSfx(kind){
   if(!soundEnabled)return;
   try{audioContext??=new AudioContext();if(audioContext.state==="suspended")audioContext.resume();
@@ -80,25 +85,32 @@ function recordCombo(k){
   queuedCombo=seq.endsWith("jjj")?"triple":seq.endsWith("jjk")?"launcher":seq.endsWith("jkk")?"finisher":seq.endsWith("kk")?"double-heavy":seq.endsWith("jj")?"double":seq.endsWith("jk")?"cross":null;
 }
 function hit(attacker, defender, kind){
-  const reach=kind==="special"?260:kind==="grab"?78:kind==="heavy"||kind==="double-heavy"?125:kind==="triple"||kind==="launcher"||kind==="finisher"?145:kind==="sweep"?110:92;
+  const reach=kind==="special"?260:kind==="grab"?92:kind==="sweep"?118:kind==="uppercut"?112:kind==="jumpKick"?130:kind==="jumpPunch"?112:kind==="kick"?118:kind==="heavy"||kind==="double-heavy"?125:kind==="triple"||kind==="launcher"||kind==="finisher"?145:92;
   if(Math.abs(attacker.x-defender.x)>reach)return false;
-  if(defender.guard&&kind!=="grab"){defender.health=Math.max(0,defender.health-(kind==="special"?5:2));defender.energy=Math.min(100,defender.energy+7);return false;}
-  const base=kind==="special"?30:kind==="grab"?16:kind==="heavy"?13:kind==="double-heavy"?20:kind==="triple"?20:kind==="launcher"?23:kind==="finisher"?25:kind==="sweep"?16:kind==="cross"?12:kind==="double"?14:7;
+  if(defender.guard&&kind!=="grab"&&kind!=="sweep"){defender.health=Math.max(0,defender.health-(kind==="special"?5:1));defender.energy=Math.min(100,defender.energy+6);defender.blockStun=.12;return false;}
+  const base=kind==="special"?30:kind==="grab"?17:kind==="uppercut"?19:kind==="sweep"?17:kind==="jumpKick"?15:kind==="jumpPunch"?11:kind==="kick"?12:kind==="heavy"?13:kind==="double-heavy"?20:kind==="triple"?20:kind==="launcher"?23:kind==="finisher"?25:kind==="cross"?12:kind==="double"?14:7;
   const damage=base*attacker.data.power;
-  defender.health=Math.max(0,defender.health-damage);defender.energy=Math.min(100,defender.energy+12);attacker.energy=Math.min(100,attacker.energy+(kind==="special"?0:8));defender.action="hit";defender.actionTime=.2;defender.vx=attacker.facing*(kind==="heavy"?8:4);defender.hitFlash=.15;return true;
+  defender.health=Math.max(0,defender.health-damage);defender.energy=Math.min(100,defender.energy+12);attacker.energy=Math.min(100,attacker.energy+(kind==="special"?0:8));defender.action=kind==="sweep"?"knockdown":"hit";defender.actionTime=kind==="sweep"?.72:kind==="grab"?.42:kind==="uppercut"?.48:.24;defender.vx=attacker.facing*(kind==="sweep"?7:kind==="uppercut"?5:kind==="heavy"?8:4);if(kind==="uppercut")defender.vy=-6;if(kind==="grab")defender.vx=attacker.facing*2;defender.hitFlash=.15;return true;
 }
 function controlFighter(f,opponent,scheme){
-  const left=scheme==="p2"?"arrowleft":"a",right=scheme==="p2"?"arrowright":"d",up=scheme==="p2"?"arrowup":"w",down=scheme==="p2"?"arrowdown":"s";
-  const punch=scheme==="p2"?"numpad1":"j",kick=scheme==="p2"?"numpad2":"k",grab=scheme==="p2"?"numpad3":"i",superKey=scheme==="p2"?"numpad0":"l";
+  const p1=scheme==="p1";
+  const left=p1?"a":"arrowleft",right=p1?"d":"arrowright",up=p1?"arrowup":"w",down=p1?"arrowdown":"s";
+  const punch=p1?"j":"numpad1",kick=p1?"k":"numpad2",grab=p1?"g":"numpad3",superKey=p1?"l":"numpad0";
   f.vx=0;f.guard=false;f.crouch=keys.has(down);
   if(keys.has(left))f.vx=-f.data.speed;if(keys.has(right))f.vx=f.data.speed;
-  if((keys.has(up))&&f.grounded){f.vy=-12;f.grounded=false;f.crouch=false;}
+  if(keys.has(up)&&f.grounded){f.vy=-12;f.grounded=false;f.crouch=false;f.action="jump";f.actionTime=.28;if(!f.isCPU)playerLastAction="jump";}
   const back=f.facing>0?left:right;
   if(keys.has("guard")||keys.has(back)){f.guard=true;f.action="guard";}
-  if(keys.has(punch)){const combo=scheme==="p1"?(queuedCombo||"attack"):"attack";if(action(f,combo==="attack"?"attack":"combo"))hit(f,opponent,combo);queuedCombo=null;keys.delete(punch);}
-  if(keys.has(kick)){const combo=scheme==="p1"?(queuedCombo||"heavy"):"heavy";if(action(f,combo==="heavy"?"heavy":"combo"))hit(f,opponent,combo);queuedCombo=null;keys.delete(kick);}
+  if(keys.has(punch)){
+    const move=!f.grounded?"jumpPunch":f.crouch?"uppercut":(p1?(queuedCombo||"attack"):"attack");
+    if(action(f,move))hit(f,opponent,move);queuedCombo=null;keys.delete(punch);
+  }
+  if(keys.has(kick)){
+    const move=!f.grounded?"jumpKick":f.crouch?"sweep":(p1?(queuedCombo||"kick"):"kick");
+    if(action(f,move))hit(f,opponent,move);queuedCombo=null;keys.delete(kick);
+  }
   if(keys.has(grab)){if(action(f,"grab"))hit(f,opponent,"grab");keys.delete(grab);}
-  if((keys.has(superKey)||(scheme==="p1"&&keys.has(" ")))&&f.energy>=100){if(action(f,"special")){f.energy=0;hit(f,opponent,"special");}keys.delete(superKey);}
+  if(keys.has(superKey)&&f.energy>=100){if(action(f,"special")){f.energy=0;hit(f,opponent,"special");}keys.delete(superKey);}
 }
 function playerInput(){
   if(!running||paused||roundOver)return;
@@ -208,12 +220,12 @@ document.addEventListener("keydown",e=>{
     }
   }
   if(e.repeat)return;
-  if((k==="j"||k==="k")&&!localMode)recordCombo(k);
+  if((k==="j"||k==="k")&&!localMode&&!keys.has("arrowdown")&&!keys.has("arrowup"))recordCombo(k);
   keys.add(k);
 });
 document.addEventListener("keyup",e=>keys.delete(normalizeKey(e)));
 document.querySelectorAll("[data-key]").forEach(b=>{
-  const k=b.dataset.key;const down=e=>{e.preventDefault();if(k==="j"||k==="k")recordCombo(k);keys.add(k);b.classList.add("active");};const up=e=>{e.preventDefault();keys.delete(k);b.classList.remove("active");};
+  const k=b.dataset.key;const down=e=>{e.preventDefault();if((k==="j"||k==="k")&&!keys.has("arrowdown")&&!keys.has("arrowup"))recordCombo(k);keys.add(k);b.classList.add("active");};const up=e=>{e.preventDefault();keys.delete(k);b.classList.remove("active");};
   b.addEventListener("pointerdown",down);b.addEventListener("pointerup",up);b.addEventListener("pointerleave",up);b.addEventListener("pointercancel",up);
 });
 $("start-button").addEventListener("click",startGame);$("back-button").addEventListener("click",backToMenu);
