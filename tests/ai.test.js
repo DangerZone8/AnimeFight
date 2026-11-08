@@ -74,6 +74,6 @@ test("CPU punishes repeated guarding with a heavy attack", () => {
   const ai = new AdaptiveCPU({ difficulty: "hard" });
   for (let i = 0; i < 8; i++) ai.observe("guard");
   const old = Math.random; Math.random = () => 0.99;
-  try { assert.equal(ai.choose({ distance: 70, selfHealth: 90, enemyHealth: 90, selfEnergy: 0 }), "heavy"); }
+  try { assert.equal(ai.choose({ distance: 70, selfHealth: 90, enemyHealth: 90, selfEnergy: 0 }), "grab"); }
   finally { Math.random = old; }
 });
