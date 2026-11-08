@@ -89,7 +89,7 @@ function hit(attacker, defender, kind){
 }
 function controlFighter(f,opponent,scheme){
   const left=scheme==="p2"?"arrowleft":"a",right=scheme==="p2"?"arrowright":"d",up=scheme==="p2"?"arrowup":"w",down=scheme==="p2"?"arrowdown":"s";
-  const punch=scheme==="p2"?"numpad1":"j",kick=scheme==="p2"?"numpad2":"k",grab=scheme==="p2"?"numpad3":"i",super=scheme==="p2"?"numpad0":"l";
+  const punch=scheme==="p2"?"numpad1":"j",kick=scheme==="p2"?"numpad2":"k",grab=scheme==="p2"?"numpad3":"i",superKey=scheme==="p2"?"numpad0":"l";
   f.vx=0;f.guard=false;f.crouch=keys.has(down);
   if(keys.has(left))f.vx=-f.data.speed;if(keys.has(right))f.vx=f.data.speed;
   if((keys.has(up))&&f.grounded){f.vy=-12;f.grounded=false;f.crouch=false;}
@@ -98,7 +98,7 @@ function controlFighter(f,opponent,scheme){
   if(keys.has(punch)){const combo=scheme==="p1"?(queuedCombo||"attack"):"attack";if(action(f,combo==="attack"?"attack":"combo"))hit(f,opponent,combo);queuedCombo=null;keys.delete(punch);}
   if(keys.has(kick)){const combo=scheme==="p1"?(queuedCombo||"heavy"):"heavy";if(action(f,combo==="heavy"?"heavy":"combo"))hit(f,opponent,combo);queuedCombo=null;keys.delete(kick);}
   if(keys.has(grab)){if(action(f,"grab"))hit(f,opponent,"grab");keys.delete(grab);}
-  if((keys.has(super)||(scheme==="p1"&&keys.has(" ")))&&f.energy>=100){if(action(f,"special")){f.energy=0;hit(f,opponent,"special");}keys.delete(super);}
+  if((keys.has(superKey)||(scheme==="p1"&&keys.has(" ")))&&f.energy>=100){if(action(f,"special")){f.energy=0;hit(f,opponent,"special");}keys.delete(superKey);}
 }
 function playerInput(){
   if(!running||paused||roundOver)return;
