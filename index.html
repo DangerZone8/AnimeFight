@@ -30,15 +30,15 @@
       <footer class="menu-footer"><span>© ANIMEFIGHT FAN PROJECT</span><span>BUILT FOR THE NEXT GENERATION OF RIVALS</span></footer>
     </section>
     <section id="fight-screen" class="fight-screen hidden">
-      <div class="fight-top"><button id="back-button" class="text-button">← CHARACTER SELECT</button><div class="round-label">ROUND <b>01</b> <span>·</span> FIRST TO TWO</div><button id="pause-button" class="text-button">Ⅱ PAUSE</button></div>
+      <div class="rotate-hint" aria-live="polite">↻ ROTATE YOUR PHONE TO LANDSCAPE TO PLAY</div><div class="fight-top"><button id="back-button" class="text-button">← CHARACTER SELECT</button><div class="round-label">ROUND <b>01</b> <span>·</span> FIRST TO TWO</div><button id="pause-button" class="text-button">Ⅱ PAUSE</button></div>
       <div class="hud">
-        <div class="fighter-hud"><div class="hud-name"><span id="player-name">PLAYER</span><small>PLAYER 01</small></div><div class="health-track"><div id="player-health" class="health-fill"></div></div><div class="energy-track"><div id="player-energy" class="energy-fill"></div></div></div>
+        <div class="fighter-hud"><div class="hud-name"><span id="player-name">PLAYER</span><small>PLAYER 01</small></div><div class="health-track"><div id="player-health" class="health-fill"></div></div><div class="stamina-label">STAMINA · LAND HITS TO CHARGE SUPER</div><div class="energy-track"><div id="player-energy" class="energy-fill"></div></div></div>
         <div class="timer" id="timer">60</div>
-        <div class="fighter-hud enemy-hud"><div class="hud-name"><span id="cpu-name">CPU</span><small>CPU RIVAL</small></div><div class="health-track"><div id="cpu-health" class="health-fill"></div></div><div class="energy-track"><div id="cpu-energy" class="energy-fill"></div></div></div>
+        <div class="fighter-hud enemy-hud"><div class="hud-name"><span id="cpu-name">CPU</span><small>CPU RIVAL</small></div><div class="health-track"><div id="cpu-health" class="health-fill"></div></div><div class="stamina-label enemy-stamina-label">STAMINA</div><div class="energy-track"><div id="cpu-energy" class="energy-fill"></div></div></div>
       </div>
       <div class="arena-wrap"><canvas id="game-canvas" width="1100" height="520" aria-label="2D fighting game arena"></canvas><div id="round-banner" class="round-banner hidden"></div></div>
       <div class="controls-bar"><div class="control-hint"><kbd>A</kbd><kbd>D</kbd> MOVE <kbd>W</kbd> JUMP <kbd>J</kbd> PUNCH <kbd>K</kbd> KICK <kbd>G</kbd> GRAB <kbd>L</kbd> SUPER <kbd>I</kbd> GUARD</div><div id="cpu-status" class="cpu-status">CPU ANALYZING</div></div>
-      <div class="touch-controls"><div class="touch-group"><button data-key="a">◀</button><button data-key="d">▶</button><button data-key="w">↟</button></div><div class="touch-group"><button data-key="i">GUARD</button><button data-key="j">PUNCH</button><button data-key="k">KICK</button><button data-key="g">GRAB</button><button data-key="l">SUPER</button></div></div>
+      <div class="touch-controls"><div class="touch-group"><button data-key="a">◀</button><button data-key="d">▶</button><button data-key="w">↟</button></div><div class="touch-group action-buttons"><button data-key="i">GUARD</button><button data-key="j">PUNCH</button><button data-key="k">KICK</button><button data-key="g">GRAB</button><button id="super-button" data-key="l" disabled>SUPER</button></div></div>
       <div class="fight-bottom"><span>TIP: MIX UP YOUR ATTACKS — THE CPU IS WATCHING.</span><button id="rematch-button" class="text-button">↻ REMATCH</button></div>
     </section>
   </main>
