@@ -89,7 +89,8 @@ function startGame(){
 }
 function backToMenu(){running=false;paused=false;clearTimeout(roundResetTimer);cancelAnimationFrame(raf);$("pause-overlay").classList.add("hidden");$("result-panel").classList.add("hidden");$("fight-screen").classList.add("hidden");$("menu-screen").classList.remove("hidden");}
 function action(f,a){
-  if(f.cooldown>0||f.action==="hit"||f.action==="knockdown")return false;
+  const chainable=!!MOVE_TIMELINES[f.action]&&f.actionTime<=f.actionDuration*.34&&f.actionTime>0;
+  if((f.cooldown>0&&!chainable)||f.action==="hit"||f.action==="knockdown")return false;
   f.action=a;f.moveName=a;f.actionTime=({special:1.05,grab:.58,uppercut:.52,sweep:.62,jumpPunch:.42,jumpKick:.5,kick:.48,heavy:.46,attack:.34,combo:.42,triple:.72,double:.52,cross:.56,launcher:.62,finisher:.72,"double-heavy":.62}[a]??.34);f.actionDuration=f.actionTime;f.actionElapsed=0;f.pendingHit=null;f.hasConnected=false;
   f.cooldown=({special:1.25,grab:.68,uppercut:.52,sweep:.62,jumpPunch:.42,jumpKick:.48,kick:.42,heavy:.48,attack:.3}[a]??.3);
   f.guard=false;if(!f.isCPU)playerLastAction=a;playSfx(a);return true;
@@ -133,11 +134,11 @@ function controlFighter(f,opponent,scheme){
   if(keys.has("guard")||keys.has(back)){f.guard=true;f.action="guard";}
   if(keys.has(punch)){
     const move=!f.grounded?"jumpPunch":f.crouch?"uppercut":(p1?(queuedCombo||"attack"):"attack");
-    if(action(f,move))hit(f,opponent,move);queuedCombo=null;keys.delete(punch);
+    if(action(f,move)){hit(f,opponent,move);if(p1)queuedCombo=null;}keys.delete(punch);
   }
   if(keys.has(kick)){
     const move=!f.grounded?"jumpKick":f.crouch?"sweep":(p1?(queuedCombo||"kick"):"kick");
-    if(action(f,move))hit(f,opponent,move);queuedCombo=null;keys.delete(kick);
+    if(action(f,move)){hit(f,opponent,move);if(p1)queuedCombo=null;}keys.delete(kick);
   }
   if(keys.has(grab)){if(action(f,"grab"))hit(f,opponent,"grab");keys.delete(grab);}
   if(keys.has(superKey)&&f.energy>=100){if(action(f,"special")){f.energy=0;hit(f,opponent,"special");}keys.delete(superKey);}
@@ -286,6 +287,7 @@ document.addEventListener("keydown",e=>{
   }
   if(e.repeat)return;
   
+  if(running&&!paused&&(k==="j"||k==="k"))recordCombo(k);
   keys.add(k);
 });
 document.addEventListener("keyup",e=>keys.delete(normalizeKey(e)));
