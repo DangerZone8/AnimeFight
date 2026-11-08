@@ -118,18 +118,20 @@ function playerInput(){
   if(localMode)controlFighter(cpu,player,"p2");
 }
 function cpuThink(){
-  if(localMode||cpu.cooldown>0||cpu.action==="hit")return;
+  if(localMode||cpu.cooldown>0||cpu.action==="hit"||cpu.action==="knockdown")return;
   const distance=Math.abs(player.x-cpu.x);
   const decision=brain.choose({distance,selfHealth:cpu.health,enemyHealth:player.health,selfEnergy:cpu.energy,enemyAction:player.action,selfCooldown:cpu.cooldown});
   $("cpu-status").textContent="CPU: "+decision.toUpperCase();
   cpu.vx=0;cpu.guard=false;
-  if(decision==="approach"){cpu.vx=cpu.facing*2.8;cpu.action="run";}
+  if(player.guard&&distance<100&&Math.random()>.28){if(action(cpu,"grab"))hit(cpu,player,"grab");}
+  else if(["attack","kick","heavy","uppercut","sweep","jumpPunch","jumpKick","special"].includes(player.action)&&Math.random()>(brain.reaction??.4)){cpu.guard=true;cpu.action="guard";}
+  else if(decision==="approach"){cpu.vx=cpu.facing*2.8;cpu.action="run";}
   else if(decision==="guard"){cpu.guard=true;cpu.action="guard";}
   else if(decision==="evade"){cpu.vx=-cpu.facing*4;cpu.action="run";}
-  else if(decision==="counter"){if(action(cpu,"heavy"))hit(cpu,player,"heavy");}
+  else if(decision==="counter"){const move=Math.random()<.45?"grab":"kick";if(action(cpu,move))hit(cpu,player,move);}
   else if(decision==="special"&&cpu.energy>=100){if(action(cpu,"special")){cpu.energy=0;hit(cpu,player,"special");}}
-  else if(decision==="heavy"){if(action(cpu,"heavy"))hit(cpu,player,"heavy");}
-  else if(decision==="attack"){if(action(cpu,"attack"))hit(cpu,player,"attack");}
+  else if(decision==="heavy"){if(action(cpu,"kick"))hit(cpu,player,"kick");}
+  else if(decision==="attack"){const move=Math.random()<.35?"grab":"attack";if(action(cpu,move))hit(cpu,player,move);}
 }
 function update(dt){
   if(!running||paused||roundOver)return;
@@ -142,8 +144,8 @@ function update(dt){
     f.x+=f.vx;f.x=Math.max(48,Math.min(1052,f.x));f.vx*=f.action==="hit"?.88:.72;
     f.y+=f.vy;f.vy+=30*dt;if(f.y>=0){f.y=0;f.vy=0;f.grounded=true;}
     f.cooldown=Math.max(0,f.cooldown-dt);f.actionTime=Math.max(0,f.actionTime-dt);f.hitFlash=Math.max(0,f.hitFlash-dt);
-    if(f.actionTime===0&&!f.guard&&f.action!=="hit"&&f.action!=="run")f.action="idle";
-    if(f.action==="hit"&&f.actionTime===0)f.action="idle";
+    if(f.actionTime===0&&!f.guard&&f.action!=="hit"&&f.action!=="knockdown"&&f.action!=="run"&&(f.action!=="jump"||f.grounded))f.action="idle";
+    if((f.action==="hit"||f.action==="knockdown")&&f.actionTime===0)f.action="idle";
     if(!f.guard&&f.action==="guard")f.action="idle";
   }
   if(timer<=0||player.health<=0||cpu.health<=0)finishRound();
