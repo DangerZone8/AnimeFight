@@ -1,6 +1,7 @@
 import { AdaptiveCPU } from "./ai.js";
 import { ATTACKS, isInHitRange, comboDamage, nextCombo, addStamina, canUseSuper, spendSuper } from "./combat.js";
 import { getBanter } from "./banter.js";
+import { getSuperProfile } from "./super.js";
 
 const roster = [
   {id:"son",name:"SON GOKU",series:"DRAGON BALL",style:"Saiyan striker",color:"#ff9c32",glow:"#ff6b25",speed:4.2,power:1.12,move:"KAMEHAMEHA"},
@@ -17,12 +18,12 @@ const roster = [
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("game-canvas"), ctx = canvas.getContext("2d");
-let selected = 0, player, cpu, brain, keys = new Set(), last = 0, elapsed = 0, timer = 60, running = false, paused = false, raf = 0, arena = "neon", roundOver = false, roundWins = [0,0], playerLastAction = "approach", statusTick = 0;
+let selected = 0, player, cpu, brain, keys = new Set(), last = 0, elapsed = 0, timer = 60, running = false, paused = false, raf = 0, arena = "neon", roundOver = false, roundWins = [0,0], playerLastAction = "approach", statusTick = 0, audioContext = null;
 function playBanter(fighter, moment) {
   const id = fighter?.data?.id;
   const line = getBanter(id, moment);
   const japaneseLine = getBanter(id, moment + "Ja");
-  const memeLine = moment === "intro" ? getBanter(id, "meme") : "";
+  const memeLine = moment === "intro" ? getBanter(id, "meme") : moment === "super" ? getSuperProfile(id).meme : "";
   const bubble = $("dialogue-bubble");
   if (!line || !bubble) return;
   bubble.textContent = [fighter.data.name + ": " + line, japaneseLine, memeLine].filter(Boolean).join("  |  ");
@@ -43,6 +44,32 @@ function playBanter(fighter, moment) {
     speak(line, "en-US");
     if (japaneseLine) speak(japaneseLine, "ja-JP");
   }
+}
+function playSuperSound(fighter) {
+  const AudioCtx = window.AudioContext || window.webkitAudioContext;
+  if (!AudioCtx) return;
+  try {
+    audioContext ||= new AudioCtx();
+    if (audioContext.state === "suspended") audioContext.resume();
+    const profile = getSuperProfile(fighter.data.id);
+    const start = audioContext.currentTime + 0.015;
+    profile.notes.forEach((frequency, index) => {
+      const osc = audioContext.createOscillator();
+      const gain = audioContext.createGain();
+      osc.type = profile.wave;
+      osc.frequency.setValueAtTime(frequency, start + index * 0.075);
+      osc.frequency.exponentialRampToValueAtTime(Math.max(35, frequency * (index % 2 ? 0.72 : 1.35)), start + index * 0.075 + 0.2);
+      gain.gain.setValueAtTime(0.0001, start + index * 0.075);
+      gain.gain.exponentialRampToValueAtTime(0.13, start + index * 0.075 + 0.025);
+      gain.gain.exponentialRampToValueAtTime(0.0001, start + index * 0.075 + 0.27);
+      osc.connect(gain); gain.connect(audioContext.destination);
+      osc.start(start + index * 0.075); osc.stop(start + index * 0.075 + 0.29);
+    });
+    const bass = audioContext.createOscillator(), bassGain = audioContext.createGain();
+    bass.type = "sine"; bass.frequency.setValueAtTime(48, start); bass.frequency.exponentialRampToValueAtTime(24, start + 0.42);
+    bassGain.gain.setValueAtTime(0.0001,start); bassGain.gain.exponentialRampToValueAtTime(0.22,start+0.025); bassGain.gain.exponentialRampToValueAtTime(0.0001,start+0.48);
+    bass.connect(bassGain); bassGain.connect(audioContext.destination); bass.start(start); bass.stop(start+0.5);
+  } catch (error) { console.warn("Super audio unavailable:", error); }
 }
 function drawPortrait(canvasEl, fighter) {
   const c=canvasEl.getContext("2d"), w=canvasEl.width=160,h=canvasEl.height=130;
@@ -65,7 +92,7 @@ function renderRoster(){
 renderRoster();
 
 class Fighter {
-  constructor(x, data, facing, isCPU=false){this.potatoTime=0;this.hexTime=0;this.comedyTime=0;this.x=x;this.y=0;this.vx=0;this.vy=0;this.data=data;this.facing=facing;this.health=100;this.energy=0;this.grounded=true;this.action="idle";this.actionTime=0;this.cooldown=0;this.guard=false;this.isCPU=isCPU;this.isBoss=isCPU&&["sorcerer","hero"].includes(data.id);this.hitFlash=0;this.combo=0;this.comboAge=99;this.attackConnected=false;this.animTime=Math.random()*6;}
+  constructor(x, data, facing, isCPU=false){this.potatoTime=0;this.hexTime=0;this.comedyTime=0;this.superTime=0;this.x=x;this.y=0;this.vx=0;this.vy=0;this.data=data;this.facing=facing;this.health=100;this.energy=0;this.grounded=true;this.action="idle";this.actionTime=0;this.cooldown=0;this.guard=false;this.isCPU=isCPU;this.isBoss=isCPU&&["sorcerer","hero"].includes(data.id);this.hitFlash=0;this.combo=0;this.comboAge=99;this.attackConnected=false;this.animTime=Math.random()*6;}
 }
 function startGame(){
   $("menu-screen").classList.add("hidden"); $("fight-screen").classList.remove("hidden");
@@ -77,7 +104,7 @@ function startGame(){
   timer=60; elapsed=0; roundWins=[0,0]; roundOver=false; paused=false; running=true; $("round-banner").classList.add("hidden");$("super-button").disabled=true;$("super-button").classList.remove("ready"); last=performance.now(); cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
 }
 function backToMenu(){running=false;cancelAnimationFrame(raf);$("fight-screen").classList.add("hidden");$("menu-screen").classList.remove("hidden");}
-function action(f,a){if(f.cooldown>0||f.action==="hit")return false;const profile=ATTACKS[a];if((a==="super"||a==="bossSuper")&&!canUseSuper(f.energy))return false;f.action=a;f.actionTime=a==="super"||a==="bossSuper"?0.62:a==="grab"?0.42:a==="kick"?0.36:0.23;f.cooldown=(profile?.cooldown??0.25)*(f.isCPU?brain.cooldownScale:1);f.guard=a==="guard";f.attackConnected=false;if(!f.isCPU)playerLastAction=a;return true;}
+function action(f,a){if(f.cooldown>0||f.action==="hit")return false;const profile=ATTACKS[a];if((a==="super"||a==="bossSuper")&&!canUseSuper(f.energy))return false;f.action=a;f.actionTime=a==="super"||a==="bossSuper"?1.28:a==="grab"?0.42:a==="kick"?0.36:0.23;if(a==="super"||a==="bossSuper"){f.superTime=1.28;playSuperSound(f);}f.cooldown=(profile?.cooldown??0.25)*(f.isCPU?brain.cooldownScale:1);f.guard=a==="guard";f.attackConnected=false;if(!f.isCPU)playerLastAction=a;return true;}
 function hit(attacker, defender, kind){
   const move=kind==="super"&&attacker.isBoss?"bossSuper":kind;
   const profile=ATTACKS[move];
@@ -135,7 +162,7 @@ function update(dt){
   if(Math.random()<Math.min(1,dt*2.2)){brain.observe(playerLastAction);playerLastAction="approach";}
   if(Math.random()<Math.min(1,dt*brain.thinkRate))cpuThink();
   for(const f of [player,cpu]){
-    f.animTime+=dt;f.potatoTime=Math.max(0,f.potatoTime-dt);f.hexTime=Math.max(0,f.hexTime-dt);f.comedyTime=Math.max(0,f.comedyTime-dt);f.comboAge+=dt;if(f.comboAge>1.15)f.combo=0;
+    f.animTime+=dt;f.superTime=Math.max(0,f.superTime-dt);f.potatoTime=Math.max(0,f.potatoTime-dt);f.hexTime=Math.max(0,f.hexTime-dt);f.comedyTime=Math.max(0,f.comedyTime-dt);f.comboAge+=dt;if(f.comboAge>1.15)f.combo=0;
     f.x+=f.vx;f.x=Math.max(48,Math.min(1052,f.x));f.vx*=f.action==="hit"?.88:.72;
     f.y+=f.vy;f.vy+=30*dt;if(f.y>=0){f.y=0;f.vy=0;f.grounded=true;}
     f.cooldown=Math.max(0,f.cooldown-dt);f.actionTime=Math.max(0,f.actionTime-dt);f.hitFlash=Math.max(0,f.hitFlash-dt);
@@ -210,14 +237,14 @@ function drawMemeSuperFX(attacker, defender){
   if(!attacker || !defender || !["super","bossSuper"].includes(attacker.action) || attacker.actionTime<=0) return;
   const c=ctx, x=defender.x, y=300, pulse=1+Math.sin(elapsed*38)*.08;
   c.save();c.translate(x,y);c.scale(pulse,1);
-  if(attacker.data.id==="yatra"){
+  const profile=getSuperProfile(attacker.data.id), t=1.28-attacker.actionTime, strength=Math.max(0,Math.sin(Math.min(1,t/1.28)*Math.PI));\n  c.globalAlpha=0.35+strength*0.65;\n  if(profile.style==="solar"){\n    c.strokeStyle="#ffcf65";c.lineWidth=7;c.shadowColor="#ff8b2b";c.shadowBlur=32;for(let i=0;i<5;i++){c.beginPath();c.ellipse(0,0,25+i*17,18+i*10,elapsed*2+i,0,Math.PI*2);c.stroke();}c.fillStyle="#fff2a8";c.beginPath();c.arc(0,0,18+strength*18,0,Math.PI*2);c.fill();\n  } else if(profile.style==="clones"){\n    c.strokeStyle="#ff9c42";c.lineWidth=5;c.shadowColor="#ffb13d";c.shadowBlur=24;for(let i=0;i<7;i++){const a=elapsed*5+i*Math.PI*2/7,px=Math.cos(a)* (32+ i%2*24),py=Math.sin(a)*30;c.beginPath();c.arc(px,py,10,0,Math.PI*2);c.stroke();}c.fillStyle="#fff";c.font="900 13px Rajdhani";c.textAlign="center";c.fillText("GROUP PROJECT",0,-82);\n  } else if(profile.style==="rubber"){\n    c.strokeStyle="#ffca65";c.lineWidth=8;c.shadowColor="#ff7848";c.shadowBlur=25;for(let i=0;i<4;i++){c.beginPath();c.ellipse(0,0,22+i*18,50-i*7,Math.sin(elapsed*8+i)*.4,0,Math.PI*2);c.stroke();}c.fillStyle="#fff";c.font="900 13px Rajdhani";c.textAlign="center";c.fillText("INFINITE INVOICE",0,-82);\n  } else if(profile.style==="void"){\n    c.strokeStyle="#8fdcff";c.lineWidth=4;c.shadowColor="#5b9dff";c.shadowBlur=36;for(let i=0;i<4;i++){c.beginPath();c.arc(0,0,22+i*17+Math.sin(elapsed*14+i)*5,elapsed*2+i,elapsed*2+i+Math.PI*1.6);c.stroke();}c.fillStyle="#10132c";c.beginPath();c.arc(0,0,23+strength*24,0,Math.PI*2);c.fill();c.strokeStyle="#fff";c.stroke();\n  } else if(profile.style==="water"){\n    c.strokeStyle="#70f5e3";c.lineWidth=6;c.shadowColor="#36c8ef";c.shadowBlur=25;for(let i=0;i<5;i++){c.beginPath();c.ellipse(0,0,25+i*13,12+i*10,elapsed*3+i,0,Math.PI*2);c.stroke();}c.fillStyle="#b8fff6";c.font="900 12px Rajdhani";c.textAlign="center";c.fillText("FLOOD THE TIMELINE",0,-82);\n  } else if(profile.style==="crescent"){\n    c.strokeStyle="#ff5b66";c.lineWidth=13;c.shadowColor="#ff334f";c.shadowBlur=30;for(let i=0;i<3;i++){c.beginPath();c.arc(0,0,30+i*19,elapsed*2+i,elapsed*2+i+Math.PI*1.25);c.stroke();}c.fillStyle="#fff";c.font="900 14px Rajdhani";c.textAlign="center";c.fillText("BANKAI",0,-82);\n  } else if(profile.style==="alchemy"){\n    c.strokeStyle="#ffe08a";c.lineWidth=4;c.shadowColor="#f3a849";c.shadowBlur=25;c.beginPath();c.arc(0,0,52+strength*15,0,Math.PI*2);c.stroke();for(let i=0;i<3;i++){const a=elapsed*1.5+i*Math.PI*2/3;c.beginPath();c.moveTo(Math.cos(a)*54,Math.sin(a)*54);c.lineTo(Math.cos(a+2.1)*54,Math.sin(a+2.1)*54);c.stroke();}c.fillStyle="#fff2c0";c.font="900 11px Rajdhani";c.textAlign="center";c.fillText("EQUIVALENT EXCHANGE",0,-82);\n  } else if(profile.style==="impact"){\n    c.fillStyle="#fff3a0";c.shadowColor="#ffef80";c.shadowBlur=35;c.beginPath();for(let i=0;i<20;i++){const a=i*Math.PI/10,r=i%2?34:85;c.lineTo(Math.cos(a)*r,Math.sin(a)*r);}c.closePath();c.fill();c.fillStyle="#ed493f";c.font="900 18px Rajdhani";c.textAlign="center";c.fillText("SERIOUS.",0,6);\n  } else if(profile.style==="potato"){
     c.fillStyle="#3b2b22";c.fillRect(-31,-72,62,68);c.fillStyle="#d9a45b";c.fillRect(-25,-66,50,54);
     c.fillStyle="#fff0b2";c.font="700 10px Rajdhani";c.textAlign="center";c.fillText("ALOO → SONA",0,-78);
     c.fillStyle="#ffd16b";c.shadowColor="#ffd16b";c.shadowBlur=20;for(let i=0;i<3;i++)c.fillRect(38+i*8,-20-i*4,7,12);
-  } else if(attacker.data.id==="deedee"){
+  } else if(profile.style==="hex"){
     c.strokeStyle="#c6a0ff";c.shadowColor="#a879ed";c.shadowBlur=24;c.lineWidth=3;for(let r=18;r<=58;r+=20){c.beginPath();c.arc(0,0,r+Math.sin(elapsed*25+r)*3,0,Math.PI*2);c.stroke();}
     c.fillStyle="#e2ceff";c.font="700 12px Rajdhani";c.textAlign="center";c.fillText("JADU HOBE",0,-70);
-  } else if(attacker.data.id==="sorcerer"){
+  } else if(false){
     c.strokeStyle="#75d9ff";c.shadowColor="#8b5cff";c.shadowBlur=30;c.lineWidth=9;c.beginPath();c.moveTo(-12,-28);c.lineTo(0,-52);c.lineTo(12,-28);c.stroke();
     c.fillStyle="#fff";c.font="900 13px Rajdhani";c.textAlign="center";c.fillText("DOMAIN EXPANSION",0,-76);
     c.strokeStyle="#d9b5ff";c.lineWidth=3;c.beginPath();c.arc(0,-5,48+Math.sin(elapsed*35)*8,0,Math.PI*2);c.stroke();
@@ -229,8 +256,8 @@ function drawMemeSuperFX(attacker, defender){
   c.restore();
 }
 function draw(){
-  ctx.clearRect(0,0,1100,520);drawArena();drawFighter(player);drawFighter(cpu);
-  drawMemeSuperFX(player,cpu);drawMemeSuperFX(cpu,player);
+  ctx.clearRect(0,0,1100,520);const shake=Math.max(player?.superTime||0,cpu?.superTime||0);if(shake>0)ctx.save();if(shake>0)ctx.translate((Math.random()-.5)*shake*10,(Math.random()-.5)*shake*7);drawArena();drawFighter(player);drawFighter(cpu);
+  drawMemeSuperFX(player,cpu);drawMemeSuperFX(cpu,player);if(shake>0){ctx.restore();ctx.fillStyle="#ffffff";ctx.globalAlpha=Math.max(0,shake-1.08)*1.8;ctx.fillRect(0,0,1100,520);ctx.globalAlpha=1;}
   if((player.action==="super"||player.action==="bossSuper")&&player.actionTime>0){ctx.fillStyle=player.data.glow;ctx.globalAlpha=.7;ctx.beginPath();ctx.ellipse(player.x+player.facing*90,315,85,17,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
 }
 function loop(now){const dt=Math.min(.04,(now-last)/1000||0);last=now;update(dt);draw();raf=requestAnimationFrame(loop);}
