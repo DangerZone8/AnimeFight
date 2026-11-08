@@ -75,7 +75,7 @@ function cpuThink(){
   if(decision==="approach"){cpu.vx=cpu.facing*2.8;cpu.action="run";}
   else if(decision==="guard"){cpu.guard=true;cpu.action="guard";}
   else if(decision==="evade"){cpu.vx=-cpu.facing*4;cpu.action="run";}
-  else if(decision==="counter"){cpu.guard=true;cpu.action="guard";}
+  else if(decision==="counter"){if(action(cpu,"heavy"))hit(cpu,player,"heavy");}
   else if(decision==="special"&&cpu.energy>=35){if(action(cpu,"special")){cpu.energy-=35;hit(cpu,player,"special");}}
   else if(decision==="heavy"){if(action(cpu,"heavy"))hit(cpu,player,"heavy");}
   else if(decision==="attack"){if(action(cpu,"attack"))hit(cpu,player,"attack");}
