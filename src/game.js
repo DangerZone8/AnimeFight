@@ -71,10 +71,12 @@ function playerInput(){
   if(keys.has("d")||keys.has("arrowright")){player.vx=player.data.speed;player.facing=1;}
   if((keys.has("w")||keys.has("arrowup")||keys.has(" "))&&player.grounded){player.vy=-12;player.grounded=false;}
   if(keys.has("i")){player.guard=true;player.action="guard";}
-  if(keys.has("j")){if(action(player,"attack"))hit(player,cpu,"attack");keys.delete("j");}
-  if(keys.has("k")){if(action(player,"heavy"))hit(player,cpu,"heavy");keys.delete("k");}
-  if(keys.has("l")&&player.energy>=35){if(action(player,"special")){player.energy-=35;hit(player,cpu,"special");keys.delete("l");}}
+  if(keys.has("j")){if(action(player,"punch"))hit(player,cpu,"punch");keys.delete("j");}
+  if(keys.has("k")){if(action(player,"kick"))hit(player,cpu,"kick");keys.delete("k");}
+  if(keys.has("g")){if(action(player,"grab"))hit(player,cpu,"grab");keys.delete("g");}
+  if(keys.has("l")&&player.energy>=35){if(action(player,"super")){player.energy-=35;hit(player,cpu,"super");keys.delete("l");}}
 }
+
 function cpuThink(){
   if(cpu.cooldown>0||cpu.action==="hit")return;
   const distance=Math.abs(player.x-cpu.x);
@@ -84,10 +86,11 @@ function cpuThink(){
   if(decision==="approach"){cpu.vx=cpu.facing*brain.moveSpeed;cpu.action="run";}
   else if(decision==="guard"){cpu.guard=true;cpu.action="guard";}
   else if(decision==="evade"){cpu.vx=-cpu.facing*brain.moveSpeed*1.12;cpu.action="run";}
-  else if(decision==="counter"){if(action(cpu,"heavy"))hit(cpu,player,"heavy");}
-  else if(decision==="special"&&cpu.energy>=35){if(action(cpu,"special")){cpu.energy-=35;hit(cpu,player,"special");}}
-  else if(decision==="heavy"){if(action(cpu,"heavy"))hit(cpu,player,"heavy");}
-  else if(decision==="attack"){if(action(cpu,"attack"))hit(cpu,player,"attack");}
+  else if(decision==="grab"){if(action(cpu,"grab"))hit(cpu,player,"grab");}
+  else if(decision==="counter"){if(action(cpu,"kick"))hit(cpu,player,"kick");}
+  else if(decision==="special"&&cpu.energy>=35){if(action(cpu,"super")){cpu.energy-=35;hit(cpu,player,"super");}}
+  else if(decision==="heavy"){if(action(cpu,"kick"))hit(cpu,player,"kick");}
+  else if(decision==="attack"){if(action(cpu,"punch"))hit(cpu,player,"punch");}
 }
 function update(dt){
   if(!running||paused||roundOver)return;
