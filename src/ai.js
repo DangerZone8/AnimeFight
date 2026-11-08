@@ -15,7 +15,7 @@ export class AdaptiveCPU {
   }
 
   get tendencies() {
-    const counts = { attack: 0, heavy: 0, special: 0, guard: 0, jump: 0 };
+    const counts = { attack: 0, heavy: 0, special: 0, guard: 0, jump: 0, approach: 0 };
     for (const action of this.history) if (action in counts) counts[action]++;
     return counts;
   }
@@ -26,12 +26,12 @@ export class AdaptiveCPU {
     const total = Object.values(t).reduce((a,b)=>a+b,0);
     const aggressive = this.personality === "berserker";
     const defensive = this.personality === "guardian";
-    const repeatedAttacks = total > 3 && (t.attack + t.heavy) / total > 0.58;
+    const attackRate = total ? (t.attack + t.heavy + t.special) / total : 0;\n    const guardRate = total ? t.guard / total : 0;\n    const repeatedAttacks = total > 3 && (t.attack + t.heavy) / total > 0.58;\n    const specialHabit = total > 3 && t.special / total > 0.34;
     const close = distance < 112;
     const danger = enemyAction === "attack" || enemyAction === "heavy" || enemyAction === "special";
 
     if (selfHealth < 24 && selfEnergy >= 35 && close && !selfCooldown) return "special";
-    if (danger && Math.random() > this.reaction) return defensive || repeatedAttacks ? "guard" : "evade";
+    if (danger && Math.random() > this.reaction) return defensive || repeatedAttacks || specialHabit ? "guard" : "evade";\n    if (close && guardRate > 0.48 && Math.random() > this.reaction) return "heavy";\n    if (specialHabit && danger && Math.random() > this.reaction) return "evade";\n    if (total >= 6 && attackRate < 0.2 && close && !defensive) return "heavy";
     if (repeatedAttacks && close && Math.random() > this.reaction) return "counter";
     if (selfEnergy >= 55 && close && !selfCooldown && (aggressive || enemyHealth < 35)) return "special";
     if (!close) return Math.random() < (aggressive ? 0.78 : 0.62) ? "approach" : "guard";
