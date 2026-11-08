@@ -50,10 +50,15 @@ function startGame(){
 function backToMenu(){running=false;cancelAnimationFrame(raf);$("fight-screen").classList.add("hidden");$("menu-screen").classList.remove("hidden");}
 function action(f,a){if(f.cooldown>0||f.action==="hit")return false;const profile=ATTACKS[a];if(profile&&f.energy<profile.cost)return false;f.action=a;f.actionTime=a==="super"||a==="bossSuper"?0.62:a==="grab"?0.42:a==="kick"?0.36:0.23;f.cooldown=(profile?.cooldown??0.25)*(f.isCPU?brain.cooldownScale:1);f.guard=a==="guard";f.attackConnected=false;if(!f.isCPU)playerLastAction=a;return true;}
 function hit(attacker, defender, kind){
-  const profile=ATTACKS[kind];
+  const move=kind==="super"&&attacker.isBoss?"bossSuper":kind;
+  const profile=ATTACKS[move];
   if(!profile||attacker.attackConnected||!isInHitRange(attacker,defender,profile.reach))return false;
   attacker.attackConnected=true;
-  if(defender.guard){defender.health=Math.max(0,defender.health-(kind==="special"?5:2));defender.energy=Math.min(100,defender.energy+7);return false;}
+  if(defender.guard&&!profile.ignoresGuard){
+    defender.health=Math.max(0,defender.health-(move==="super"||move==="bossSuper"?6:2));
+    defender.energy=Math.min(100,defender.energy+7);
+    return false;
+  }
   attacker.combo=nextCombo(attacker.combo,attacker.comboAge);
   attacker.comboAge=0;
   const damage=comboDamage(profile.damage*attacker.data.power*(attacker.isCPU?brain.damageScale:1),attacker.combo);
@@ -64,6 +69,7 @@ function hit(attacker, defender, kind){
   $("cpu-status").textContent=(attacker.isCPU?"CPU":"PLAYER")+" COMBO ×"+attacker.combo;
   return true;
 }
+
 function playerInput(){
   if(!running||paused||roundOver)return;
   player.vx=0;player.guard=false;
