@@ -65,7 +65,7 @@ function renderRoster(){
 renderRoster();
 
 class Fighter {
-  constructor(x, data, facing, isCPU=false){this.potatoTime=0;this.hexTime=0;this.x=x;this.y=0;this.vx=0;this.vy=0;this.data=data;this.facing=facing;this.health=100;this.energy=0;this.grounded=true;this.action="idle";this.actionTime=0;this.cooldown=0;this.guard=false;this.isCPU=isCPU;this.isBoss=isCPU&&["sorcerer","hero"].includes(data.id);this.hitFlash=0;this.combo=0;this.comboAge=99;this.attackConnected=false;this.animTime=Math.random()*6;}
+  constructor(x, data, facing, isCPU=false){this.potatoTime=0;this.hexTime=0;this.comedyTime=0;this.x=x;this.y=0;this.vx=0;this.vy=0;this.data=data;this.facing=facing;this.health=100;this.energy=0;this.grounded=true;this.action="idle";this.actionTime=0;this.cooldown=0;this.guard=false;this.isCPU=isCPU;this.isBoss=isCPU&&["sorcerer","hero"].includes(data.id);this.hitFlash=0;this.combo=0;this.comboAge=99;this.attackConnected=false;this.animTime=Math.random()*6;}
 }
 function startGame(){
   $("menu-screen").classList.add("hidden"); $("fight-screen").classList.remove("hidden");
@@ -93,10 +93,7 @@ function hit(attacker, defender, kind){
   const damage=comboDamage(profile.damage*attacker.data.power*(attacker.isCPU?brain.damageScale:1),attacker.combo);
   defender.health=Math.max(0,defender.health-damage);
   attacker.energy=addStamina(attacker.energy,profile.staminaGain);
-  if(attacker.data.id==="yatra" && (move==="super"||move==="bossSuper")) defender.potatoTime=0.9;
-  if(attacker.data.id==="deedee" && (move==="super"||move==="bossSuper")) defender.hexTime=0.9;
-  if(attacker.data.id==="yatra" && (move==="super"||move==="bossSuper")) defender.potatoTime=0.9;
-  if(attacker.data.id==="deedee" && (move==="super"||move==="bossSuper")) defender.hexTime=0.9;
+  if(move==="super"||move==="bossSuper"){defender.comedyTime=0.62;if(attacker.data.id==="yatra")defender.potatoTime=0.9;if(attacker.data.id==="deedee")defender.hexTime=0.9;}
   defender.action="hit";defender.actionTime=.2;defender.vx=attacker.facing*profile.push;defender.hitFlash=.15;
   $("cpu-status").textContent=(attacker.isCPU?"CPU":"PLAYER")+" COMBO ×"+attacker.combo;
   return true;
@@ -138,7 +135,7 @@ function update(dt){
   if(Math.random()<Math.min(1,dt*2.2)){brain.observe(playerLastAction);playerLastAction="approach";}
   if(Math.random()<Math.min(1,dt*brain.thinkRate))cpuThink();
   for(const f of [player,cpu]){
-    f.animTime+=dt;f.potatoTime=Math.max(0,f.potatoTime-dt);f.hexTime=Math.max(0,f.hexTime-dt);f.comboAge+=dt;if(f.comboAge>1.15)f.combo=0;
+    f.animTime+=dt;f.potatoTime=Math.max(0,f.potatoTime-dt);f.hexTime=Math.max(0,f.hexTime-dt);f.comedyTime=Math.max(0,f.comedyTime-dt);f.comboAge+=dt;if(f.comboAge>1.15)f.combo=0;
     f.x+=f.vx;f.x=Math.max(48,Math.min(1052,f.x));f.vx*=f.action==="hit"?.88:.72;
     f.y+=f.vy;f.vy+=30*dt;if(f.y>=0){f.y=0;f.vy=0;f.grounded=true;}
     f.cooldown=Math.max(0,f.cooldown-dt);f.actionTime=Math.max(0,f.actionTime-dt);f.hitFlash=Math.max(0,f.hitFlash-dt);
@@ -152,19 +149,19 @@ function update(dt){
 function finishRound(){
   roundOver=true;const winner=player.health>cpu.health?0:cpu.health>player.health?1:2;
   if(winner!==2)roundWins[winner]++;
-  const text=winner===2?"DRAW":winner===0?"ROUND WON":"CPU WINS ROUND";
+  const text=winner===2?"DRAW":winner===0?"YOU WIN":"YOU LOASE";
   if(winner!==2) playBanter(winner===0?player:cpu,"win");
   if(winner!==2) playBanter(winner===0?player:cpu,"win");
   $("round-banner").textContent=text+"  ·  "+roundWins[0]+" — "+roundWins[1];$("round-banner").classList.remove("hidden");
   if(roundWins[0]<2&&roundWins[1]<2){setTimeout(()=>{if(!running)return;player.health=100;cpu.health=100;player.energy=0;cpu.energy=0;player.x=290;cpu.x=810;elapsed=0;timer=60;roundOver=false;$("round-banner").classList.add("hidden");},1800);}
-  else{$("round-banner").textContent=(roundWins[0]>roundWins[1]?"VICTORY":"DEFEAT")+"  ·  "+roundWins[0]+" — "+roundWins[1];}
+  else{$("round-banner").textContent=(roundWins[0]>roundWins[1]?"YOU WIN":"YOU LOASE")+"  ·  "+roundWins[0]+" — "+roundWins[1];}
 }
 function drawFighter(f){
   const x=f.x,y=414-f.y,face=f.facing,c=ctx;
   const moving=Math.abs(f.vx)>0.8, attacking=["punch","kick","grab","super","bossSuper"].includes(f.action);
   const phase=f.animTime, bob=f.grounded?(moving?Math.abs(Math.sin(phase*12))*3:Math.sin(phase*2)*1.5):0;
   const lean=attacking?Math.min(13,f.actionTime*35):moving?3:0;
-  c.save();c.translate(x,y-bob);c.scale(face,1);
+  c.save();c.translate(x,y-bob);if(f.comedyTime>0)c.rotate(Math.sin((0.62-f.comedyTime)*32)*0.42);c.scale(face,1);
   if(f.potatoTime>0){c.shadowColor="#d9a45b";c.shadowBlur=25;c.fillStyle="#b9793f";c.beginPath();c.ellipse(0,-83,31,23,-.25,0,Math.PI*2);c.fill();c.shadowBlur=0;c.fillStyle="#4a2b1a";for(const [px,py] of [[-12,-89],[9,-79],[2,-94]]){c.beginPath();c.arc(px,py,2.2,0,Math.PI*2);c.fill();}c.fillStyle="#ffe28a";c.font="700 11px Rajdhani";c.textAlign="center";c.fillText("POTATO MODE",0,-119);c.restore();return;}
   if(f.hexTime>0){c.strokeStyle="#c6a0ff";c.lineWidth=5;c.shadowColor="#a879ed";c.shadowBlur=24;c.beginPath();c.arc(0,-87,53+Math.sin(phase*18)*5,0,Math.PI*2);c.stroke();c.shadowBlur=0;}
   if(f.potatoTime>0){c.shadowColor="#d9a45b";c.shadowBlur=25;c.fillStyle="#b9793f";c.beginPath();c.ellipse(0,-83,31,23,-.25,0,Math.PI*2);c.fill();c.shadowBlur=0;c.fillStyle="#4a2b1a";for(const [px,py] of [[-12,-89],[9,-79],[2,-94]]){c.beginPath();c.arc(px,py,2.2,0,Math.PI*2);c.fill();}c.fillStyle="#ffe28a";c.font="700 11px Rajdhani";c.textAlign="center";c.fillText("POTATO MODE",0,-119);c.restore();return;}
@@ -212,19 +209,24 @@ function drawArena(){
 function drawMemeSuperFX(attacker, defender){
   if(!attacker || !defender || !["super","bossSuper"].includes(attacker.action) || attacker.actionTime<=0) return;
   const c=ctx, x=defender.x, y=300, pulse=1+Math.sin(elapsed*38)*.08;
+  c.save();c.translate(x,y);c.scale(pulse,1);
   if(attacker.data.id==="yatra"){
-    c.save();c.translate(x,y);c.scale(pulse,1);
-    c.fillStyle="#3b2b22";c.fillRect(-31,-72,62,68);
-    c.fillStyle="#d9a45b";c.fillRect(-25,-66,50,54);
+    c.fillStyle="#3b2b22";c.fillRect(-31,-72,62,68);c.fillStyle="#d9a45b";c.fillRect(-25,-66,50,54);
     c.fillStyle="#fff0b2";c.font="700 10px Rajdhani";c.textAlign="center";c.fillText("ALOO → SONA",0,-78);
-    c.fillStyle="#ffd16b";c.shadowColor="#ffd16b";c.shadowBlur=20;
-    for(let i=0;i<3;i++){c.fillRect(38+i*8,-20-i*4,7,12);}
-    c.restore();
+    c.fillStyle="#ffd16b";c.shadowColor="#ffd16b";c.shadowBlur=20;for(let i=0;i<3;i++)c.fillRect(38+i*8,-20-i*4,7,12);
   } else if(attacker.data.id==="deedee"){
-    c.save();c.translate(x,y);c.strokeStyle="#c6a0ff";c.shadowColor="#a879ed";c.shadowBlur=24;c.lineWidth=3;
-    for(let r=18;r<=58;r+=20){c.beginPath();c.arc(0,0,r+Math.sin(elapsed*25+r)*3,0,Math.PI*2);c.stroke();}
-    c.fillStyle="#e2ceff";c.font="700 12px Rajdhani";c.textAlign="center";c.fillText("JADU HOBE",0,-70);c.restore();
+    c.strokeStyle="#c6a0ff";c.shadowColor="#a879ed";c.shadowBlur=24;c.lineWidth=3;for(let r=18;r<=58;r+=20){c.beginPath();c.arc(0,0,r+Math.sin(elapsed*25+r)*3,0,Math.PI*2);c.stroke();}
+    c.fillStyle="#e2ceff";c.font="700 12px Rajdhani";c.textAlign="center";c.fillText("JADU HOBE",0,-70);
+  } else if(attacker.data.id==="sorcerer"){
+    c.strokeStyle="#75d9ff";c.shadowColor="#8b5cff";c.shadowBlur=30;c.lineWidth=9;c.beginPath();c.moveTo(-12,-28);c.lineTo(0,-52);c.lineTo(12,-28);c.stroke();
+    c.fillStyle="#fff";c.font="900 13px Rajdhani";c.textAlign="center";c.fillText("DOMAIN EXPANSION",0,-76);
+    c.strokeStyle="#d9b5ff";c.lineWidth=3;c.beginPath();c.arc(0,-5,48+Math.sin(elapsed*35)*8,0,Math.PI*2);c.stroke();
+  } else {
+    const labels={son:"KAMEHAME-HA!",ninja:"SHADOW CLONE!",captain:"GUM-GUM!",blade:"WATER BREATH!",reaper:"BANKAI!",homunculus:"TRANSMUTE!",hero:"SERIOUS MODE!"};
+    c.fillStyle=attacker.data.glow;c.shadowColor=attacker.data.glow;c.shadowBlur=28;c.beginPath();c.ellipse(0,-22,50+Math.sin(elapsed*30)*12,18,0,0,Math.PI*2);c.fill();
+    c.fillStyle="#fff";c.font="900 12px Rajdhani";c.textAlign="center";c.fillText(labels[attacker.data.id]||"SPECIAL DELIVERY",0,-65);
   }
+  c.restore();
 }
 function draw(){
   ctx.clearRect(0,0,1100,520);drawArena();drawFighter(player);drawFighter(cpu);
