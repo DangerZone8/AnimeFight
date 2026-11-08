@@ -5,7 +5,7 @@ const PALETTES = {
   mirage:{ skin:"#a96f52", hair:"#d7d4c7", cloth:"#354b7b", trim:"#92d7ff", accent:"#735cff", hairStyle:"flow", weapon:"none" },
   coil:  { skin:"#e0b18e", hair:"#253044", cloth:"#a53c45", trim:"#f0d4a2", accent:"#ff775d", hairStyle:"spikes", weapon:"none" },
   astral:{ skin:"#e5c3a4", hair:"#202b4b", cloth:"#20243d", trim:"#a8c9ff", accent:"#77a7ff", hairStyle:"long", weapon:"none" },
-  tide:  { skin:"#bd8b6d", hair:"#1d4d4a", cloth:"#276b68", trim:"#b7f3d6", accent:"#52dfc2", hairStyle:"bob", weapon:"blade" },
+  tide:  { skin:"#bd8b6d", hair:"#1d4d4a", cloth:"#276b68", trim:"#b7f3d6", accent:"#52dfc2", hairStyle:"bob", weapon:"none" },
   dusk:  { skin:"#c58d77", hair:"#2a263a", cloth:"#40324d", trim:"#e2a4c9", accent:"#b66cff", hairStyle:"spikes", weapon:"greatblade" },
   glyph: { skin:"#e4b995", hair:"#6b563c", cloth:"#826b42", trim:"#f1dc91", accent:"#e6a947", hairStyle:"tied", weapon:"none" },
   meteor:{ skin:"#9e725c", hair:"#eee0bd", cloth:"#d7d5d0", trim:"#e9b94e", accent:"#fff0a8", hairStyle:"short", weapon:"none" }
@@ -104,12 +104,7 @@ function makeFighter(id) {
   if(meta.headgear==="goggles"){mesh(new THREE.TorusGeometry(.095,.025,8,16),trim,head,-.095,.05,.22);mesh(new THREE.TorusGeometry(.095,.025,8,16),trim,head,.095,.05,.22);}
   if(meta.headgear==="scarf"){mesh(new THREE.CapsuleGeometry(.07,.55,4,8),accent,head,.27,-.13,-.03).rotation.z=-.8;}
   if(meta.cape){const cape=mesh(new THREE.BoxGeometry(.72,.92,.07),mat(p.cloth,.9),body,0,.05,-.25);cape.rotation.x=-.12;cape.rotation.z=.06;}
-  // Weapons are stylized props, not realistic weapon simulations.
-  if(p.weapon!=="none"){
-    const prop=new THREE.Group();prop.position.set(.52,.05,.04);body.add(prop);
-    const blade=mesh(new THREE.BoxGeometry(p.weapon==="greatblade"?.16:.07,.95,.045),accent,prop,0,-.35,0);blade.rotation.z=-.18;
-    mesh(new THREE.BoxGeometry(.32,.07,.12),trim,prop,0,-.78,0);
-  }
+  // Original character silhouettes use no weapon props.
   // Glowing shoulder/hip details and a subtle aura ring.
   for(const side of [-1,1]){
     mesh(new THREE.SphereGeometry(.105,12,10),accent,body,side*.42,.42,.015);
