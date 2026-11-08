@@ -27,3 +27,11 @@ test("CPU detects repeated player attacks", () => {
   for (let i=0;i<8;i++) ai.observe("attack");
   assert.equal(ai.tendencies.attack,8);
 });
+test("CPU chooses a counter against repeated close-range attacks", () => {
+  const ai = new AdaptiveCPU({ difficulty:"normal" });
+  for (let i=0;i<8;i++) ai.observe("attack");
+  const old = Math.random;
+  Math.random = () => 0.99;
+  try { assert.equal(ai.choose({ distance:60,selfHealth:90,enemyHealth:90,selfEnergy:0 }),"counter"); }
+  finally { Math.random = old; }
+});
