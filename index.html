@@ -18,7 +18,7 @@
     <section id="menu-screen" class="menu-screen">
       <div class="hero-copy"><p class="eyebrow">ONE ARENA. EVERY UNIVERSE.</p><h1>WHO WILL<br><span>STAND</span> LAST?</h1><p class="subcopy">Choose your fighter. Read your rival. Rewrite the outcome.</p></div>
       <div class="select-panel">
-        <div class="panel-heading"><div><span id="selection-step" class="step">01 / SELECT YOUR FIGHTER</span><h2>Choose a champion</h2></div><span class="roster-count">ROSTER <b>08</b></span></div>
+        <div class="panel-heading"><div><span id="selection-step" class="step">01 / SELECT YOUR FIGHTER</span><h2>Choose a champion</h2></div><span class="roster-count">ROSTER <b>10</b></span></div>
         <div class="pick-tabs"><button id="select-player" class="active" type="button">1P · <b id="player-pick-name">EMBER RONIN</b></button><button id="select-cpu" type="button">CPU · <b id="cpu-pick-name">NIGHT VOW</b></button><button id="random-button" type="button">RANDOM</button></div><div id="roster" class="roster-grid" aria-label="Fighter roster"></div>
         <div class="match-settings">
           <label>CPU STYLE<select id="cpu-style"><option value="tactician">Tactician</option><option value="berserker">Berserker</option><option value="guardian">Guardian</option></select></label>
@@ -40,8 +40,8 @@
         <div id="pause-overlay" class="arena-overlay hidden"><section><p class="step">MATCH PAUSED</p><h2>CHAI BREAK</h2><button id="resume-button" type="button">RESUME</button><button id="sound-toggle" type="button">SOUND: ON</button><button id="quit-button" type="button">QUIT TO SELECT</button></section></div>
         <div id="result-panel" class="arena-overlay hidden"><section><p class="step">MATCH COMPLETE</p><h2 id="result-title">YOU WIN!</h2><p id="result-copy">The arena belongs to you.</p><button id="result-rematch" type="button">REMATCH</button><button id="result-select" type="button">CHARACTER SELECT</button></section></div>
       </div>
-      <div class="controls-bar"><div class="control-hint"><kbd>A/D</kbd> MOVE <kbd>W</kbd> JUMP <kbd>S</kbd> CROUCH <kbd>BACK</kbd> BLOCK <kbd>J</kbd> PUNCH <kbd>K</kbd> KICK <kbd>I</kbd> GRAB <kbd>L/SPACE</kbd> SUPER</div><div id="cpu-status" class="cpu-status">CPU ANALYZING</div></div>
-      <div class="touch-controls"><div class="touch-group"><button data-key="a">◀</button><button data-key="d">▶</button><button data-key="w">↟</button></div><div class="touch-group"><button data-key="guard">BLOCK</button><button data-key="i">GRAB</button><button data-key="j">PUNCH</button><button data-key="k">KICK</button><button data-key="l">SUPER</button></div></div>
+      <div class="controls-bar"><div class="control-hint"><kbd>A/D</kbd> MOVE <kbd>↑</kbd> JUMP <kbd>↓</kbd> CROUCH <kbd>↓+J</kbd> UPPERCUT <kbd>↓+K</kbd> SWEEP <kbd>J</kbd> PUNCH <kbd>K</kbd> KICK <kbd>G</kbd> GRAB <kbd>L</kbd> SUPER <kbd>BACK</kbd> BLOCK</div><div id="cpu-status" class="cpu-status">CPU ANALYZING</div></div>
+      <div class="touch-controls"><div class="touch-group"><button data-key="a">◀</button><button data-key="d">▶</button><button data-key="arrowup">JUMP</button><button data-key="arrowdown">CROUCH</button></div><div class="touch-group"><button data-key="guard">BLOCK</button><button data-key="g">GRAB</button><button data-key="j">PUNCH</button><button data-key="k">KICK</button><button data-key="l">SUPER</button></div></div>
       <div class="fight-bottom"><span id="fight-tip">COMBOS: J,J,J · J,J,K · J,K,K · K,K · SUPER AT FULL SHAKTI</span><button id="rematch-button" class="text-button">↻ REMATCH</button></div>
     </section>
   <div id="rotate-overlay" class="rotate-overlay hidden"><section><h2>ROTATE YOUR PHONE</h2><p>AnimeFight is best played in landscape.</p><button id="continue-portrait" type="button">PLAY ANYWAY</button></section></div>
