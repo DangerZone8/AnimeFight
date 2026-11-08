@@ -30,7 +30,7 @@
       <footer class="menu-footer"><span>© ANIMEFIGHT FAN PROJECT</span><span>BUILT FOR THE NEXT GENERATION OF RIVALS</span></footer>
     </section>
     <section id="fight-screen" class="fight-screen hidden">
-      <div class="fight-top"><button id="back-button" class="text-button">← CHARACTER SELECT</button><div class="round-label">ROUND <b id="round-number">01</b> <span>·</span> <span id="round-score">0 — 0</span> · FIRST TO TWO</div><button id="pause-button" class="text-button">Ⅱ PAUSE</button></div>
+      <div class="fight-top"><button id="back-button" class="text-button">← CHARACTER SELECT</button><div class="round-label">ROUND <b id="round-number">01</b> <span>·</span> <span id="round-score">0 — 0</span> · FIRST TO TWO</div><div class="fight-actions"><button id="fullscreen-button" class="text-button" type="button">⛶ FULLSCREEN</button><button id="pause-button" class="text-button">Ⅱ PAUSE</button></div></div>
       <div class="hud">
         <div class="fighter-hud"><div class="hud-name"><span id="player-name">PLAYER</span><small>PLAYER 01</small></div><div class="health-track"><div id="player-health" class="health-fill"></div></div><div class="energy-track"><div id="player-energy" class="energy-fill"></div></div><small id="player-shakti" class="shakti-label">SHAKTI 0%</small></div>
         <div class="timer" id="timer">60</div>
@@ -44,6 +44,7 @@
       <div class="touch-controls"><div class="touch-group"><button data-key="a">◀</button><button data-key="d">▶</button><button data-key="w">↟</button></div><div class="touch-group"><button data-key="guard">BLOCK</button><button data-key="i">GRAB</button><button data-key="j">PUNCH</button><button data-key="k">KICK</button><button data-key="l">SUPER</button></div></div>
       <div class="fight-bottom"><span id="fight-tip">COMBOS: J,J,J · J,J,K · J,K,K · K,K · SUPER AT FULL SHAKTI</span><button id="rematch-button" class="text-button">↻ REMATCH</button></div>
     </section>
+  <div id="rotate-overlay" class="rotate-overlay hidden"><section><h2>ROTATE YOUR PHONE</h2><p>AnimeFight is best played in landscape.</p><button id="continue-portrait" type="button">PLAY ANYWAY</button></section></div>
   </main>
   <script type="module" src="src/game.js"></script>
 </body>
