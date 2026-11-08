@@ -43,3 +43,18 @@ test("CPU recognises a repeated special-move habit", () => {
   try { assert.equal(ai.choose({distance:60,selfHealth:90,enemyHealth:90,selfEnergy:0,enemyAction:"special"}),"guard"); }
   finally { Math.random = old; }
 });
+
+test("nightmare CPU has faster decisions, movement, recovery, and stronger hits than easy", () => {
+  const easy = new AdaptiveCPU({ difficulty: "easy" });
+  const nightmare = new AdaptiveCPU({ difficulty: "nightmare" });
+  assert.ok(nightmare.thinkRate > easy.thinkRate);
+  assert.ok(nightmare.moveSpeed > easy.moveSpeed);
+  assert.ok(nightmare.cooldownScale < easy.cooldownScale);
+  assert.ok(nightmare.damageScale > easy.damageScale);
+});
+
+test("CPU history remains bounded after extended play", () => {
+  const ai = new AdaptiveCPU();
+  for (let i = 0; i < 100; i++) ai.observe(i % 2 ? "attack" : "guard");
+  assert.equal(ai.history.length, 18);
+});
