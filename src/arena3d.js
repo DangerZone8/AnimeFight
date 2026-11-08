@@ -191,7 +191,7 @@ export function createArena3D(container) {
     const list=[state.player,state.cpu];
     for(let i=0;i<2;i++){
       const f=list[i],model=fighters[i],d=model.userData;
-      model.position.set((f.x-550)/92,Math.max(0,f.y)/82,i===0?.35:-.35);
+      model.position.set((f.x-550)/92,Math.max(0,-f.y)/82,i===0?.35:-.35);
       model.rotation.y=f.facing>0?Math.PI/2:-Math.PI/2;
       const t=state.elapsed,move=Math.abs(f.vx)>.4;
       d.body.position.y=(f.y>0?0:Math.abs(Math.sin(t*9+i))* (move?.055:.018));
