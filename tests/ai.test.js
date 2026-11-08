@@ -35,3 +35,11 @@ test("CPU chooses a counter against repeated close-range attacks", () => {
   try { assert.equal(ai.choose({ distance:60,selfHealth:90,enemyHealth:90,selfEnergy:0 }),"counter"); }
   finally { Math.random = old; }
 });
+
+test("CPU recognises a repeated special-move habit", () => {
+  const ai = new AdaptiveCPU({difficulty:"normal"});
+  for (let i=0;i<8;i++) ai.observe("special");
+  const old = Math.random; Math.random = () => 0.99;
+  try { assert.equal(ai.choose({distance:60,selfHealth:90,enemyHealth:90,selfEnergy:0,enemyAction:"special"}),"guard"); }
+  finally { Math.random = old; }
+});
