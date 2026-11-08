@@ -149,6 +149,7 @@ function drawArena(){
   g.fillStyle="#ffffff10";g.font="700 17px Rajdhani";g.textAlign="center";g.fillText(arena==="temple"?"SKY TEMPLE":arena==="dojo"?"CRIMSON DOJO":"NEO TOKYO",550,48);
 }
 function draw(){
+  if(arena3d){arena3d.render({player,cpu,elapsed});return;}
   ctx.clearRect(0,0,1100,520);drawArena();drawFighter(player);drawFighter(cpu);
   if(player.action==="special"&&player.actionTime>0){ctx.fillStyle=player.data.glow;ctx.globalAlpha=.7;ctx.beginPath();ctx.ellipse(player.x+player.facing*90,315,85,17,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
 }
