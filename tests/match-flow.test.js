@@ -39,8 +39,7 @@ test("combo strings, local two-player mode and pause/audio controls are wired", 
   for (const id of ["pause-overlay","resume-button","sound-toggle","quit-button","result-rematch","result-select"]) assert.ok(html.includes(`id="${id}"`));
 });
 
-test("political satire roster and CPU defense/grab/super are present", () => {
-  assert.ok(game.includes("NARENDRA MODI")); assert.ok(game.includes("RAHUL GANDHI"));
+test("anime combat includes CPU defense, grab counters, super and knockdown mechanics", () => {
   assert.ok(game.includes("player.guard&&distance<100"));
   assert.ok(game.includes('action(cpu,"special")'));
   assert.ok(game.includes('defender.action=kind==="sweep"?"knockdown":"hit"'));
