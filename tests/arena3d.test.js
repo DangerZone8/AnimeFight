@@ -27,3 +27,13 @@ test("combat retains stages, controls, combos and active-frame hit resolution", 
   assert.ok(game.includes("attacker.pendingHit={defender,kind,delay:attacker.actionDuration*(MOVE_TIMELINES[kind]?.startup??.28)}"));
   assert.ok(game.includes("resolveHit(f,pending.defender,pending.kind)"));
 });
+test("combat uses eased move timelines, hit-stop, camera shake and impact particles", () => {
+  for (const token of ["MOVE_TIMELINES","function moveProgress(f)","function spawnImpact(","hitStop=Math.max(hitStop,profile.hitstop","cameraShake=Math.max(cameraShake","combatFX.push","const wind=easeInOut(timeline.wind)","strike=easeOut(timeline.strike)"]) assert.ok(game.includes(token), "missing combat feel feature: "+token);
+});
+test("combo input is recorded and chained during recovery cancel windows", () => {
+  assert.ok(game.includes('recordCombo(k);'));
+  assert.ok(game.includes('const chainable=!!MOVE_TIMELINES[f.action]'));
+  assert.ok(game.includes('seq.endsWith("jjj")?"triple"'));
+  assert.ok(game.includes('seq.endsWith("jjk")?"launcher"'));
+  assert.ok(game.includes('seq.endsWith("jkk")?"finisher"'));
+});
