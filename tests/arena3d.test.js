@@ -17,7 +17,7 @@ test("2D canvas renderer is active and does not load WebGL", () => {
   assert.ok(!game.includes('import("./arena3d.js")')); assert.ok(html.includes("2D anime-inspired arena fighter"));
 });
 test("2D fighter animation includes articulated limbs and move-specific poses", () => {
-  for (const token of ["const arm=(angle,side)=>","const leg=(angle,offset)=>","phase===","actionName===","c.arc(32,-104,48","actionName==="]) assert.ok(game.includes(token), "missing 2D animation feature: "+token);
+  for (const token of ["const arm=(angle,side)=>","const leg=(angle,offset,front=false)=>","phase===","actionName===","c.arc(32,-104,48","actionName==="]) assert.ok(game.includes(token), "missing 2D animation feature: "+token);
   for (const move of ["attack","heavy","kick","uppercut","sweep","jumpPunch","jumpKick","grab","special","hit","knockdown"]) assert.ok(game.includes('actionName==="' + move + '"') || game.includes('"'+move+'"'), "missing move pose: "+move);
 });
 test("combat retains stages, controls, combos and active-frame hit resolution", () => {
