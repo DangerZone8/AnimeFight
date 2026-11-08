@@ -19,7 +19,7 @@ export class AdaptiveCPU {
   observe(playerAction) {
     if (!playerAction) return;
     this.history.push(playerAction);
-    if (this.history.length > 24) this.history.shift();
+    if (this.history.length > 18) this.history.shift();
   }
 
   get tendencies() {
