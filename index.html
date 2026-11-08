@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#090b18">
-  <meta name="description" content="AnimeFight — a 2D anime crossover arena. Choose a fighter and challenge an adaptive CPU.">
-  <title>AnimeFight — Crossover Arena</title>
+  <meta name="description" content="AnimeFight — a 3D anime-inspired arena fighter. Choose an original champion and challenge an adaptive CPU.">
+  <title>AnimeFight — 3D Crossover Arena</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -36,7 +36,7 @@
         <div class="timer" id="timer">60</div>
         <div class="fighter-hud enemy-hud"><div class="hud-name"><span id="cpu-name">CPU</span><small>CPU RIVAL</small></div><div class="health-track"><div id="cpu-health" class="health-fill"></div></div><div class="energy-track"><div id="cpu-energy" class="energy-fill"></div></div></div>
       </div>
-      <div class="arena-wrap"><canvas id="game-canvas" width="1100" height="520" aria-label="2D fighting game arena"></canvas><div id="round-banner" class="round-banner hidden"></div></div>
+      <div id="arena-wrap" class="arena-wrap"><canvas id="game-canvas" width="1100" height="520" aria-label="Fallback fighting game arena"></canvas><div id="round-banner" class="round-banner hidden"></div></div>
       <div class="controls-bar"><div class="control-hint"><kbd>A</kbd><kbd>D</kbd> MOVE <kbd>W</kbd> JUMP <kbd>J</kbd> LIGHT <kbd>K</kbd> HEAVY <kbd>L</kbd> SPECIAL <kbd>I</kbd> GUARD</div><div id="cpu-status" class="cpu-status">CPU ANALYZING</div></div>
       <div class="touch-controls"><div class="touch-group"><button data-key="a">◀</button><button data-key="d">▶</button><button data-key="w">↟</button></div><div class="touch-group"><button data-key="i">GUARD</button><button data-key="j">LIGHT</button><button data-key="k">HEAVY</button><button data-key="l">SPECIAL</button></div></div>
       <div class="fight-bottom"><span>TIP: MIX UP YOUR ATTACKS — THE CPU IS WATCHING.</span><button id="rematch-button" class="text-button">↻ REMATCH</button></div>
