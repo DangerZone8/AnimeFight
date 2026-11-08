@@ -9,9 +9,9 @@ test("roster uses ten distinct fighter identities", () => {
   const names = [...game.matchAll(/name:"([A-Z ]+)"/g)].map(match => match[1]);
   const models = [...game.matchAll(/model:"([a-z]+)"/g)].map(match => match[1]);
   assert.equal(names.length, 10);
-  assert.equal(new Set(names).size, 8);
+  assert.equal(new Set(names).size, 10);
   assert.equal(models.length, 10);
-  assert.equal(new Set(models).size, 8);
+  assert.equal(new Set(models).size, 10);
   for (const name of ["NARENDRA MODI","RAHUL GANDHI","EMBER RONIN","MIRAGE","IRON COIL","ORACLE ZERO","TIDEBOUND","NIGHT VOW","SIGIL FORGE","COMET SAINT"]) {
     assert.ok(names.includes(name), `missing original fighter: ${name}`);
   }
