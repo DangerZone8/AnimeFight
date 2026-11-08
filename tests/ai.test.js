@@ -11,7 +11,12 @@ test("CPU records a bounded history of player actions", () => {
 
 test("CPU spends special energy when critically low on health and in range", () => {
   const ai = new AdaptiveCPU();
-  assert.equal(ai.choose({ distance:60,selfHealth:10,enemyHealth:80,selfEnergy:50 }),"special");
+  assert.equal(ai.choose({ distance:60,selfHealth:10,enemyHealth:80,selfEnergy:100 }),"special");
+});
+
+test("CPU does not use a super before the SHAKTI meter is full", () => {
+  const ai = new AdaptiveCPU();
+  assert.notEqual(ai.choose({ distance:60,selfHealth:10,enemyHealth:80,selfEnergy:99 }),"special");
 });
 
 test("CPU approaches when the opponent is outside attack range", () => {

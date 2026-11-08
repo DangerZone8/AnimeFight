@@ -30,10 +30,10 @@ export class AdaptiveCPU {
     const close = distance < 112;
     const danger = enemyAction === "attack" || enemyAction === "heavy" || enemyAction === "special";
 
-    if (selfHealth < 24 && selfEnergy >= 35 && close && !selfCooldown) return "special";
+    if (selfHealth < 24 && selfEnergy >= 100 && close && !selfCooldown) return "special";
     if (danger && Math.random() > this.reaction) return defensive || repeatedAttacks ? "guard" : "evade";
     if (repeatedAttacks && close && Math.random() > this.reaction) return "counter";
-    if (selfEnergy >= 55 && close && !selfCooldown && (aggressive || enemyHealth < 35)) return "special";
+    if (selfEnergy >= 100 && close && !selfCooldown && (aggressive || enemyHealth < 35)) return "special";
     if (!close) return Math.random() < (aggressive ? 0.78 : 0.62) ? "approach" : "guard";
     if (defensive && Math.random() < 0.35) return "guard";
     if (aggressive) return Math.random() < 0.7 ? "heavy" : "attack";

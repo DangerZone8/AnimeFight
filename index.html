@@ -4,8 +4,8 @@
   <meta charset="UTF-8">
   <meta name="viewport" content="width=device-width,initial-scale=1,viewport-fit=cover">
   <meta name="theme-color" content="#090b18">
-  <meta name="description" content="AnimeFight — a 2D anime crossover arena. Choose a fighter and challenge an adaptive CPU.">
-  <title>AnimeFight — Crossover Arena</title>
+  <meta name="description" content="AnimeFight — a 3D anime-inspired arena fighter. Choose an original champion and challenge an adaptive CPU.">
+  <title>AnimeFight — 3D Crossover Arena</title>
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Rajdhani:wght@500;600;700&family=Space+Grotesk:wght@400;500;600;700&display=swap" rel="stylesheet">
@@ -18,11 +18,11 @@
     <section id="menu-screen" class="menu-screen">
       <div class="hero-copy"><p class="eyebrow">ONE ARENA. EVERY UNIVERSE.</p><h1>WHO WILL<br><span>STAND</span> LAST?</h1><p class="subcopy">Choose your fighter. Read your rival. Rewrite the outcome.</p></div>
       <div class="select-panel">
-        <div class="panel-heading"><div><span class="step">01 / SELECT YOUR FIGHTER</span><h2>Choose a champion</h2></div><span class="roster-count">ROSTER <b>08</b></span></div>
-        <div id="roster" class="roster-grid" aria-label="Fighter roster"></div>
+        <div class="panel-heading"><div><span id="selection-step" class="step">01 / SELECT YOUR FIGHTER</span><h2>Choose a champion</h2></div><span class="roster-count">ROSTER <b>08</b></span></div>
+        <div class="pick-tabs"><button id="select-player" class="active" type="button">1P · <b id="player-pick-name">EMBER RONIN</b></button><button id="select-cpu" type="button">CPU · <b id="cpu-pick-name">NIGHT VOW</b></button><button id="random-button" type="button">RANDOM</button></div><div id="roster" class="roster-grid" aria-label="Fighter roster"></div>
         <div class="match-settings">
           <label>CPU STYLE<select id="cpu-style"><option value="tactician">Tactician</option><option value="berserker">Berserker</option><option value="guardian">Guardian</option></select></label>
-          <label>DIFFICULTY<select id="difficulty"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option><option value="expert">Expert</option><option value="nightmare">Nightmare</option></select></label>
+          <label>DIFFICULTY<select id="difficulty"><option value="easy">Easy</option><option value="normal" selected>Normal</option><option value="hard">Hard</option></select></label><label>MODE<select id="match-mode"><option value="cpu">1P · VS CPU</option><option value="local">2P · LOCAL FRIEND</option></select></label>
           <label>ARENA<select id="arena"><option value="neon">Neo Tokyo</option><option value="temple">Sky Temple</option><option value="dojo">Crimson Dojo</option></select></label>
         </div>
         <button id="start-button" class="start-button">ENTER THE ARENA <span>→</span></button>
@@ -30,17 +30,21 @@
       <footer class="menu-footer"><span>© ANIMEFIGHT FAN PROJECT</span><span>BUILT FOR THE NEXT GENERATION OF RIVALS</span></footer>
     </section>
     <section id="fight-screen" class="fight-screen hidden">
-      <div class="fight-top"><button id="back-button" class="text-button">← CHARACTER SELECT</button><div class="round-label">ROUND <b>01</b> <span>·</span> FIRST TO TWO</div><button id="pause-button" class="text-button">Ⅱ PAUSE</button></div>
+      <div class="fight-top"><button id="back-button" class="text-button">← CHARACTER SELECT</button><div class="round-label">ROUND <b id="round-number">01</b> <span>·</span> <span id="round-score">0 — 0</span> · FIRST TO TWO</div><div class="fight-actions"><button id="fullscreen-button" class="text-button" type="button">⛶ FULLSCREEN</button><button id="pause-button" class="text-button">Ⅱ PAUSE</button></div></div>
       <div class="hud">
-        <div class="fighter-hud"><div class="hud-name"><span id="player-name">PLAYER</span><small>PLAYER 01</small></div><div class="health-track"><div id="player-health" class="health-fill"></div></div><div class="energy-track"><div id="player-energy" class="energy-fill"></div></div></div>
+        <div class="fighter-hud"><div class="hud-name"><span id="player-name">PLAYER</span><small>PLAYER 01</small></div><div class="health-track"><div id="player-health" class="health-fill"></div></div><div class="energy-track"><div id="player-energy" class="energy-fill"></div></div><small id="player-shakti" class="shakti-label">SHAKTI 0%</small></div>
         <div class="timer" id="timer">60</div>
-        <div class="fighter-hud enemy-hud"><div class="hud-name"><span id="cpu-name">CPU</span><small>CPU RIVAL</small></div><div class="health-track"><div id="cpu-health" class="health-fill"></div></div><div class="energy-track"><div id="cpu-energy" class="energy-fill"></div></div></div>
+        <div class="fighter-hud enemy-hud"><div class="hud-name"><span id="cpu-name">CPU</span><small>CPU RIVAL</small></div><div class="health-track"><div id="cpu-health" class="health-fill"></div></div><div class="energy-track"><div id="cpu-energy" class="energy-fill"></div></div><small id="cpu-shakti" class="shakti-label">SHAKTI 0%</small></div>
       </div>
-      <div class="arena-wrap"><canvas id="game-canvas" width="1100" height="520" aria-label="2D fighting game arena"></canvas><div id="round-banner" class="round-banner hidden"></div></div>
-      <div class="controls-bar"><div class="control-hint"><kbd>A</kbd><kbd>D</kbd> MOVE <kbd>W</kbd> JUMP <kbd>J</kbd> LIGHT <kbd>K</kbd> HEAVY <kbd>L</kbd> SPECIAL <kbd>I</kbd> GUARD</div><div id="cpu-status" class="cpu-status">CPU ANALYZING</div></div>
-      <div class="touch-controls"><div class="touch-group"><button data-key="a">◀</button><button data-key="d">▶</button><button data-key="w">↟</button></div><div class="touch-group"><button data-key="i">GUARD</button><button data-key="j">LIGHT</button><button data-key="k">HEAVY</button><button data-key="l">SPECIAL</button></div></div>
-      <div class="fight-bottom"><span>TIP: MIX UP YOUR ATTACKS — THE CPU IS WATCHING.</span><button id="rematch-button" class="text-button">↻ REMATCH</button></div>
+      <div id="arena-wrap" class="arena-wrap"><canvas id="game-canvas" width="1100" height="520" aria-label="Fallback fighting game arena"></canvas><div id="round-banner" class="round-banner hidden"></div>
+        <div id="pause-overlay" class="arena-overlay hidden"><section><p class="step">MATCH PAUSED</p><h2>CHAI BREAK</h2><button id="resume-button" type="button">RESUME</button><button id="sound-toggle" type="button">SOUND: ON</button><button id="quit-button" type="button">QUIT TO SELECT</button></section></div>
+        <div id="result-panel" class="arena-overlay hidden"><section><p class="step">MATCH COMPLETE</p><h2 id="result-title">YOU WIN!</h2><p id="result-copy">The arena belongs to you.</p><button id="result-rematch" type="button">REMATCH</button><button id="result-select" type="button">CHARACTER SELECT</button></section></div>
+      </div>
+      <div class="controls-bar"><div class="control-hint"><kbd>A/D</kbd> MOVE <kbd>↑</kbd> JUMP <kbd>↓</kbd> CROUCH <kbd>↓+J</kbd> UPPERCUT <kbd>↓+K</kbd> SWEEP <kbd>J</kbd> PUNCH <kbd>K</kbd> KICK <kbd>G</kbd> GRAB <kbd>L</kbd> SUPER <kbd>BACK</kbd> BLOCK</div><div id="cpu-status" class="cpu-status">CPU ANALYZING</div></div>
+      <div class="touch-controls"><div class="touch-group"><button data-key="a">◀</button><button data-key="d">▶</button><button data-key="arrowup">JUMP</button><button data-key="arrowdown">CROUCH</button></div><div class="touch-group"><button data-key="guard">BLOCK</button><button data-key="g">GRAB</button><button data-key="j">PUNCH</button><button data-key="k">KICK</button><button data-key="l">SUPER</button></div></div>
+      <div class="fight-bottom"><span id="fight-tip">COMBOS: J,J,J · J,J,K · J,K,K · K,K · SUPER AT FULL SHAKTI</span><button id="rematch-button" class="text-button">↻ REMATCH</button></div>
     </section>
+  <div id="rotate-overlay" class="rotate-overlay hidden"><section><h2>ROTATE YOUR PHONE</h2><p>AnimeFight is best played in landscape.</p><button id="continue-portrait" type="button">PLAY ANYWAY</button></section></div>
   </main>
   <script type="module" src="src/game.js"></script>
 </body>
