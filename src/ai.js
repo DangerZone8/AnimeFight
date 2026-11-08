@@ -47,7 +47,7 @@ export class AdaptiveCPU {
       if (repeatedAttacks) return "counter";
       return "evade";
     }
-    if (close && guardRate > 0.42 && Math.random() > this.reaction) return "heavy";
+    if (close && guardRate > 0.42 && Math.random() > this.reaction) return "grab";
     if (specialHabit && close && Math.random() > this.reaction) return "evade";
     if (repeatedAttacks && close && Math.random() > this.reaction) return "counter";
 
