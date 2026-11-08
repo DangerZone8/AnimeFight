@@ -1,6 +1,6 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
 
-const PALETTES = {
+const PALETTES = {\n  modi:{skin:"#c98e6d",hair:"#c8c3b6",cloth:"#e0a04a",trim:"#f4d9a0",accent:"#ff8b38",hairStyle:"swept"},\n  rahul:{skin:"#bd896e",hair:"#24232a",cloth:"#e8e5dc",trim:"#527b9e",accent:"#79b8df",hairStyle:"short"},
   ember: { skin:"#d9a17f", hair:"#f4a34c", cloth:"#263c58", trim:"#ffb84f", accent:"#ff613d", hairStyle:"crest" },
   mirage:{ skin:"#a96f52", hair:"#d7d4c7", cloth:"#354b7b", trim:"#92d7ff", accent:"#735cff", hairStyle:"flow" },
   coil:  { skin:"#e0b18e", hair:"#253044", cloth:"#a53c45", trim:"#f0d4a2", accent:"#ff775d", hairStyle:"spikes" },
@@ -11,7 +11,7 @@ const PALETTES = {
   meteor:{ skin:"#9e725c", hair:"#eee0bd", cloth:"#d7d5d0", trim:"#e9b94e", accent:"#fff0a8", hairStyle:"short" }
 };
 
-const FIGHTER_META = {
+const FIGHTER_META = {\n  modi:{height:1.88,build:1.04,shoulder:1.02,cape:false,headgear:"none",beard:true},\n  rahul:{height:1.9,build:1.08,shoulder:1.05,cape:false,headgear:"none",beard:true},
   ember:{ height:1.92, build:1.02, shoulder:1.0, cape:false, headgear:"band" },
   mirage:{ height:1.82, build:.88, shoulder:.86, cape:true, headgear:"hood" },
   coil:{ height:1.9, build:1.18, shoulder:1.18, cape:false, headgear:"none" },
@@ -75,7 +75,7 @@ function makeFighter(id) {
     mesh(new THREE.BoxGeometry(.075,.018,.025),hair,head,side*.095,.105,.218).rotation.z=side*.12;
   }
   mesh(new THREE.BoxGeometry(.105,.018,.018),dark,head,0,-.13,.218);
-  // Signature hair silhouettes are original and deliberately varied.
+  // Signature hair silhouettes are original and deliberately varied.\n  if(p.hairStyle==="swept"){mesh(new THREE.SphereGeometry(.27,18,14),hair,head,0,.13,-.04).scale.set(1.05,.62,.98);const sweep=mesh(new THREE.ConeGeometry(.16,.42,8),hair,head,.14,.24,.02);sweep.rotation.z=-.65;}
   if(p.hairStyle==="crest"||p.hairStyle==="spikes"){
     const count=p.hairStyle==="crest"?7:9;
     for(let i=0;i<count;i++){
@@ -97,7 +97,7 @@ function makeFighter(id) {
     mesh(new THREE.SphereGeometry(.26,18,14),hair,head,0,.13,-.035).scale.set(1,.52,.96);
     if(p.hairStyle==="tied"){const knot=mesh(new THREE.SphereGeometry(.09,12,10),accent,head,0,.32,-.16);knot.scale.set(1,1.5,1);}
   }
-  // Character-specific accessories.
+  if(meta.beard){const beard=mesh(new THREE.SphereGeometry(.19,16,12),hair,head,0,-.17,.12);beard.scale.set(.82,.7,.62);}\n  // Character-specific accessories.
   if(meta.headgear==="band")mesh(new THREE.BoxGeometry(.48,.055,.12),trim,head,0,.16,.19);
   if(meta.headgear==="visor"){const visor=mesh(new THREE.BoxGeometry(.47,.095,.12),accent,head,0,.065,.2);visor.rotation.x=-.12;}
   if(meta.headgear==="hood"){mesh(new THREE.SphereGeometry(.3,16,12),cloth,head,0,.06,-.12).scale.set(1.12,1.15,.62);}
