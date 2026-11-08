@@ -220,12 +220,12 @@ document.addEventListener("keydown",e=>{
     }
   }
   if(e.repeat)return;
-  if((k==="j"||k==="k")&&!localMode&&!keys.has("arrowdown")&&!keys.has("arrowup"))recordCombo(k);
+  
   keys.add(k);
 });
 document.addEventListener("keyup",e=>keys.delete(normalizeKey(e)));
 document.querySelectorAll("[data-key]").forEach(b=>{
-  const k=b.dataset.key;const down=e=>{e.preventDefault();if((k==="j"||k==="k")&&!keys.has("arrowdown")&&!keys.has("arrowup"))recordCombo(k);keys.add(k);b.classList.add("active");};const up=e=>{e.preventDefault();keys.delete(k);b.classList.remove("active");};
+  const k=b.dataset.key;const down=e=>{e.preventDefault();keys.add(k);b.classList.add("active");};const up=e=>{e.preventDefault();keys.delete(k);b.classList.remove("active");};
   b.addEventListener("pointerdown",down);b.addEventListener("pointerup",up);b.addEventListener("pointerleave",up);b.addEventListener("pointercancel",up);
 });
 $("start-button").addEventListener("click",startGame);$("back-button").addEventListener("click",backToMenu);
