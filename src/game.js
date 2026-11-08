@@ -83,7 +83,7 @@ function startGame(){
   $("player-name").textContent=hero.name; $("cpu-name").textContent=rival.name;
   brain=new AdaptiveCPU({difficulty:$("difficulty").value,personality:$("cpu-style").value});
   arena3dReady.then(view=>{if(view&&running){view.setArena(arena);view.setFighters(hero.model,rival.model);}});
-  timer=60; elapsed=0; roundWins=[0,0]; roundOver=false; paused=false; running=true; comboBuffer=[];queuedCombo=null;
+  timer=60; elapsed=0; roundWins=[0,0]; roundOver=false; paused=false; running=true; comboBuffer=[];queuedCombo=null;hitStop=0;cameraShake=0;combatFX.length=0;
   $("round-banner").classList.add("hidden");$("round-number").textContent="01";$("round-score").textContent="0 — 0";
   $("pause-button").textContent="Ⅱ PAUSE"; last=performance.now(); cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
 }
@@ -234,12 +234,20 @@ function drawFighter(f){
   c.fillStyle=color;c.beginPath();c.moveTo(-25,torsoY+8);c.lineTo(24,torsoY+8);c.lineTo(32,-52);c.lineTo(18,-43);c.lineTo(0,-50);c.lineTo(-19,-42);c.lineTo(-31,-53);c.closePath();c.fill();
   c.fillStyle=glow;c.globalAlpha=.85;c.beginPath();c.moveTo(-25,-82);c.lineTo(24,-82);c.lineTo(17,-72);c.lineTo(-18,-72);c.closePath();c.fill();c.globalAlpha=f.hitFlash>0?.6:1;
   c.strokeStyle=glow;c.lineWidth=3;c.beginPath();c.moveTo(-20,-112);c.lineTo(0,-83);c.lineTo(20,-112);c.stroke();
+  if(["coil","glyph","meteor"].includes(f.data.id)){c.fillStyle=glow;c.globalAlpha=.85;c.beginPath();c.moveTo(-29,-108);c.lineTo(-42,-96);c.lineTo(-25,-84);c.closePath();c.fill();c.beginPath();c.moveTo(29,-108);c.lineTo(42,-96);c.lineTo(25,-84);c.closePath();c.fill();c.globalAlpha=1;}
+  if(["ember","tide","dusk"].includes(f.data.id)){c.strokeStyle=glow;c.lineWidth=6;c.beginPath();c.moveTo(-20,-75);c.quadraticCurveTo(-42,-56,-57,-68);c.stroke();}
   // Articulated arms: shoulder, elbow and fist follow the attack arc.
   const arm=(angle,side)=>{c.save();c.translate(side*19,-112);c.rotate(angle);limb(0,0,0,24,13,color);limb(0,18,0,36,8,skin);c.fillStyle=skin;c.beginPath();c.arc(0,40,9,0,Math.PI*2);c.fill();c.restore();};
   arm(armB,-1);arm(armA,1);
   // Head, spiked hair, expressive eyes.
   c.fillStyle=skin;c.beginPath();c.ellipse(0,headY+12,20,23,0,0,Math.PI*2);c.fill();
-  c.fillStyle=dark;c.beginPath();c.moveTo(-22,headY+2);c.lineTo(-24,headY-20);c.lineTo(-9,headY-10);c.lineTo(1,headY-31);c.lineTo(12,headY-11);c.lineTo(25,headY-21);c.lineTo(20,headY+7);c.lineTo(7,headY-2);c.lineTo(-6,headY+3);c.closePath();c.fill();
+  const hair={ember:"#242037",mirage:"#344a7c",coil:"#2a1b26",astral:"#d6e0ff",tide:"#123e40",dusk:"#21182e",glyph:"#3c3020",meteor:"#f0e8d7"}[f.data.id]||dark;
+  c.fillStyle=hair;c.beginPath();c.moveTo(-22,headY+2);c.lineTo(-24,headY-20);c.lineTo(-9,headY-10);c.lineTo(1,headY-31);c.lineTo(12,headY-11);c.lineTo(25,headY-21);c.lineTo(20,headY+7);c.lineTo(7,headY-2);c.lineTo(-6,headY+3);c.closePath();c.fill();
+  c.strokeStyle=glow;c.lineWidth=3;c.lineCap="round";
+  if(["mirage","tide","dusk"].includes(f.data.id)){c.beginPath();c.moveTo(-17,headY-5);c.quadraticCurveTo(-37,headY+18,-30,headY+42);c.stroke();c.beginPath();c.moveTo(17,headY-4);c.quadraticCurveTo(34,headY+16,27,headY+37);c.stroke();}
+  else if(["coil","meteor"].includes(f.data.id)){c.beginPath();c.moveTo(-13,headY-15);c.lineTo(-5,headY-37);c.lineTo(2,headY-15);c.lineTo(12,headY-32);c.stroke();}
+  else if(["glyph","astral"].includes(f.data.id)){c.beginPath();c.moveTo(-18,headY-13);c.lineTo(-25,headY-31);c.moveTo(18,headY-13);c.lineTo(25,headY-31);c.stroke();}
+  if(["ember","coil","glyph","meteor"].includes(f.data.id)){c.fillStyle=glow;c.globalAlpha=.8;c.fillRect(-18,headY-7,36,3);c.globalAlpha=1;}
   c.fillStyle="#fff";c.fillRect(-12,headY+11,8,4);c.fillRect(5,headY+11,8,4);c.fillStyle="#1b213c";c.fillRect(-8,headY+11,4,4);c.fillRect(8,headY+11,4,4);
   c.strokeStyle=dark;c.lineWidth=2.5;c.beginPath();c.moveTo(-5,headY+28);c.quadraticCurveTo(0,headY+31,6,headY+27);c.stroke();
   // Action trails and contact cues are tied to the active frames.
@@ -292,7 +300,7 @@ document.addEventListener("keydown",e=>{
 });
 document.addEventListener("keyup",e=>keys.delete(normalizeKey(e)));
 document.querySelectorAll("[data-key]").forEach(b=>{
-  const k=b.dataset.key;const down=e=>{e.preventDefault();keys.add(k);b.classList.add("active");};const up=e=>{e.preventDefault();keys.delete(k);b.classList.remove("active");};
+  const k=b.dataset.key;const down=e=>{e.preventDefault();if(running&&!paused&&(k==="j"||k==="k"))recordCombo(k);keys.add(k);b.classList.add("active");};const up=e=>{e.preventDefault();keys.delete(k);b.classList.remove("active");};
   b.addEventListener("pointerdown",down);b.addEventListener("pointerup",up);b.addEventListener("pointerleave",up);b.addEventListener("pointercancel",up);
 });
 $("start-button").addEventListener("click",startGame);$("back-button").addEventListener("click",backToMenu);
