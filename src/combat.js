@@ -1,7 +1,9 @@
 export const ATTACKS = Object.freeze({
-  attack: Object.freeze({ damage: 7, reach: 92, startup: 0.07, active: 0.12, recovery: 0.18, push: 4 }),
-  heavy: Object.freeze({ damage: 13, reach: 120, startup: 0.15, active: 0.12, recovery: 0.3, push: 8 }),
-  special: Object.freeze({ damage: 23, reach: 265, startup: 0.22, active: 0.16, recovery: 0.42, push: 11 })
+  punch: Object.freeze({ damage: 6, reach: 88, push: 3, cost: 0, cooldown: 0.2 }),
+  kick: Object.freeze({ damage: 11, reach: 112, push: 7, cost: 0, cooldown: 0.34 }),
+  grab: Object.freeze({ damage: 15, reach: 62, push: 10, cost: 0, cooldown: 0.55, ignoresGuard: true }),
+  super: Object.freeze({ damage: 28, reach: 270, push: 13, cost: 35, cooldown: 0.9 }),
+  bossSuper: Object.freeze({ damage: 48, reach: 310, push: 18, cost: 35, cooldown: 1.25 })
 });
 
 export function isInHitRange(attacker, defender, reach) {
@@ -11,9 +13,14 @@ export function isInHitRange(attacker, defender, reach) {
 
 export function comboDamage(baseDamage, comboCount) {
   const step = Math.max(0, Math.min(3, comboCount - 1));
-  return Math.round(baseDamage * (1 + step * 0.12) * 10) / 10;
+  return Math.round(baseDamage * (1 + step * 0.1) * 10) / 10;
 }
 
 export function nextCombo(previousCount, elapsedSinceHit) {
   return elapsedSinceHit <= 1.15 ? Math.min(4, previousCount + 1) : 1;
+}
+
+export function damageForMove(move, { power = 1, isBoss = false } = {}) {
+  const key = move === "super" && isBoss ? "bossSuper" : move;
+  return ATTACKS[key].damage * power;
 }
