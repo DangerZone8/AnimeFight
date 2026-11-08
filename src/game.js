@@ -127,7 +127,7 @@ function finishRound(){
 }
 function drawFighter(f){
   const x=f.x,y=414-f.y,face=f.facing,c=ctx;
-  const moving=Math.abs(f.vx)>0.8, attacking=["attack","heavy","special"].includes(f.action);
+  const moving=Math.abs(f.vx)>0.8, attacking=["punch","kick","grab","super","bossSuper"].includes(f.action);
   const phase=f.animTime, bob=f.grounded?(moving?Math.abs(Math.sin(phase*12))*3:Math.sin(phase*2)*1.5):0;
   const lean=attacking?Math.min(13,f.actionTime*35):moving?3:0;
   c.save();c.translate(x,y-bob);c.scale(face,1);
@@ -141,6 +141,7 @@ function drawFighter(f){
   c.beginPath();c.moveTo(10,-58);c.lineTo(13+stride,-17);c.stroke();
   c.strokeStyle=col;c.lineWidth=8;c.beginPath();c.moveTo(-13-stride,-17);c.lineTo(-23-stride,-10);c.stroke();
   c.beginPath();c.moveTo(13+stride,-17);c.lineTo(23+stride,-10);c.stroke();
+  if(f.action==="kick"){c.strokeStyle=col;c.lineWidth=12;c.beginPath();c.moveTo(10,-58);c.lineTo(47,-37);c.stroke();c.strokeStyle=skin;c.lineWidth=9;c.beginPath();c.moveTo(47,-37);c.lineTo(62,-34);c.stroke();}
   c.fillStyle=col;c.beginPath();c.moveTo(-23,-108);c.lineTo(22,-108);c.lineTo(29,-59);c.lineTo(-28,-59);c.closePath();c.fill();
   c.fillStyle="#ffffff35";c.beginPath();c.moveTo(-13,-103);c.lineTo(0,-103);c.lineTo(7,-65);c.lineTo(-8,-65);c.closePath();c.fill();
   c.fillStyle=dark;c.fillRect(-25,-66,51,7);
@@ -152,9 +153,9 @@ function drawFighter(f){
   const reach=attacking?(f.action==="kick"?58:f.action==="grab"?48:39)+lean:f.guard?9:moving?24+Math.sin(phase*12)*7:19;
   c.lineCap="round";c.strokeStyle=col;c.lineWidth=12;c.beginPath();c.moveTo(17,-99);c.lineTo(reach,-91);c.stroke();
   c.strokeStyle=skin;c.lineWidth=9;c.beginPath();c.moveTo(reach,-91);c.lineTo(reach+13,-87);c.stroke();
-  c.strokeStyle=col;c.lineWidth=11;c.beginPath();c.moveTo(-17,-99);c.lineTo(-29,-78+(f.guard?-17:0));c.stroke();
-  c.strokeStyle=skin;c.lineWidth=8;c.beginPath();c.moveTo(-29,-78+(f.guard?-17:0));c.lineTo(-34,-70+(f.guard?-17:0));c.stroke();
-  if(f.action==="super"||f.action==="bossSuper"){c.shadowColor=f.data.glow;c.shadowBlur=32;c.fillStyle=f.data.glow;c.beginPath();c.arc(reach+22,-88,16+Math.sin(phase*20)*5,0,Math.PI*2);c.fill();c.shadowBlur=0;}
+  c.strokeStyle=col;c.lineWidth=11;c.beginPath();c.moveTo(-17,-99);c.lineTo(f.action==="grab"?-49:-29,-78+(f.guard?-17:0));c.stroke();
+  c.strokeStyle=skin;c.lineWidth=8;c.beginPath();c.moveTo(f.action==="grab"?-49:-29,-78+(f.guard?-17:0));c.lineTo(f.action==="grab"?-62:-34,-70+(f.guard?-17:0));c.stroke();
+  if(f.action==="super"||f.action==="bossSuper"){c.shadowColor=f.data.glow;c.shadowBlur=32;c.fillStyle=f.data.glow;c.beginPath();c.arc(reach+22,-88,(f.action==="bossSuper"?28:16)+Math.sin(phase*20)*5,0,Math.PI*2);c.fill();c.shadowBlur=0;}
   if(f.guard){c.strokeStyle="#78eaff";c.lineWidth=4;c.beginPath();c.arc(0,-88,48,-1.2,1.2);c.stroke();}
   if(f.combo>1&&f.comboAge<.65){c.fillStyle="#fff";c.font="700 13px Rajdhani";c.textAlign="center";c.fillText("×"+f.combo,0,-184);}
   c.restore();
