@@ -3,3 +3,9 @@
 
 .fight-actions{display:flex;align-items:center;gap:16px}.rotate-overlay{position:fixed;z-index:20;inset:0;place-items:center;background:#070b18ed;backdrop-filter:blur(12px);text-align:center;padding:24px}.rotate-overlay section{max-width:340px}.rotate-overlay h2{font:700 32px Rajdhani,sans-serif;letter-spacing:2px}.rotate-overlay p{color:#aab0ca;font-size:13px}.rotate-overlay button{margin-top:14px;padding:11px 20px;border:0;background:var(--pink);color:#fff;font:700 12px Rajdhani,sans-serif;letter-spacing:1px}.rotate-overlay:not(.hidden){display:grid}@media(max-width:850px){.fight-actions{gap:8px}.fight-actions .text-button{font-size:8px}}
 \n/* Original FightKaro-inspired control feedback. */\n.control-hint{gap:6px}.touch-group button[data-key="arrowup"],.touch-group button[data-key="arrowdown"]{min-width:56px}.touch-group button[data-key="g"]{border-color:#c9a85c}.touch-group button[data-key="l"]{border-color:#ff477e;color:#ff9bb8}.arena-wrap .arena-3d-canvas{touch-action:none}\n
+/* AnimeFight visual polish: layered panels, luminous stage identity and character-card depth. */
+.fighter-art{background:radial-gradient(ellipse at 50% 78%,color-mix(in srgb,var(--glow) 45%,transparent),transparent 67%),linear-gradient(155deg,#293454,#10172d 70%);}
+.fighter-card{background:linear-gradient(160deg,#111a32,#090e1d);box-shadow:inset 0 1px #ffffff0b,0 8px 20px #0003;}
+.fighter-card.selected{box-shadow:0 0 0 2px #ff477e24,0 0 24px #ff477e20;}
+.arena-wrap{border-color:#59658a;box-shadow:0 22px 75px #000a,0 0 35px #4567a322;}
+.health-track{box-shadow:inset 0 1px 4px #0008;}.energy-fill{box-shadow:0 0 9px #55e6ef99;}
