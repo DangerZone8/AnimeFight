@@ -195,10 +195,11 @@ export function createArena3D(container) {
       model.rotation.y=f.facing>0?Math.PI/2:-Math.PI/2;
       const t=state.elapsed,move=Math.abs(f.vx)>.4;
       d.body.position.y=(f.y>0?0:Math.abs(Math.sin(t*9+i))* (move?.055:.018));
+      d.body.scale.y=f.crouch?.72:1;d.body.position.z=f.crouch?.08:0;
       d.body.rotation.z=move?Math.sin(t*11+i)*.045:0;
       d.legs[0].rotation.x=move?Math.sin(t*13+i)*.48:0;
       d.legs[1].rotation.x=move?Math.sin(t*13+i+Math.PI)*.48:0;
-      d.arms[0].rotation.x=f.action==="attack"||f.action==="heavy"||f.action==="special"?-1.15:Math.sin(t*8+i)*.08;
+      d.arms[0].rotation.x=f.action==="attack"||f.action==="heavy"||f.action==="combo"||f.action==="grab"||f.action==="special"?-1.15:Math.sin(t*8+i)*.08;
       d.arms[1].rotation.x=f.guard?-.9:move?Math.sin(t*13+i+Math.PI)*.28:0;
       d.aura.material.opacity=f.action==="special"?.2:.055;
       if(f.action==="special"&&previous[i]!=="special")burst(model.position.x+(f.facing>0?.9:-.9),d.accent);
