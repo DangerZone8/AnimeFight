@@ -1,0 +1,11 @@
+{
+  "name": "anime-fight",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "node scripts/serve.js",
+    "build": "node scripts/build-check.js",
+    "test": "node --test"
+  }
+}
