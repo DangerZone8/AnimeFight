@@ -64,6 +64,7 @@ function startGame(){
   player=new Fighter(290,hero,1); cpu=new Fighter(810,rival,-1,true);
   $("player-name").textContent=hero.name; $("cpu-name").textContent=rival.name;
   brain=new AdaptiveCPU({difficulty:$("difficulty").value,personality:$("cpu-style").value});
+  playBanter(player,"intro");
   timer=60; elapsed=0; roundWins=[0,0]; roundOver=false; paused=false; running=true; $("round-banner").classList.add("hidden");$("super-button").disabled=true;$("super-button").classList.remove("ready"); last=performance.now(); cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
 }
 function backToMenu(){running=false;cancelAnimationFrame(raf);$("fight-screen").classList.add("hidden");$("menu-screen").classList.remove("hidden");}
@@ -83,6 +84,8 @@ function hit(attacker, defender, kind){
   const damage=comboDamage(profile.damage*attacker.data.power*(attacker.isCPU?brain.damageScale:1),attacker.combo);
   defender.health=Math.max(0,defender.health-damage);
   attacker.energy=addStamina(attacker.energy,profile.staminaGain);
+  if(attacker.data.id==="yatra" && (move==="super"||move==="bossSuper")) defender.potatoTime=0.9;
+  if(attacker.data.id==="deedee" && (move==="super"||move==="bossSuper")) defender.hexTime=0.9;
   if(attacker.data.id==="yatra" && (move==="super"||move==="bossSuper")) defender.potatoTime=0.9;
   if(attacker.data.id==="deedee" && (move==="super"||move==="bossSuper")) defender.hexTime=0.9;
   defender.action="hit";defender.actionTime=.2;defender.vx=attacker.facing*profile.push;defender.hitFlash=.15;
@@ -142,6 +145,7 @@ function finishRound(){
   if(winner!==2)roundWins[winner]++;
   const text=winner===2?"DRAW":winner===0?"ROUND WON":"CPU WINS ROUND";
   if(winner!==2) playBanter(winner===0?player:cpu,"win");
+  if(winner!==2) playBanter(winner===0?player:cpu,"win");
   $("round-banner").textContent=text+"  ·  "+roundWins[0]+" — "+roundWins[1];$("round-banner").classList.remove("hidden");
   if(roundWins[0]<2&&roundWins[1]<2){setTimeout(()=>{if(!running)return;player.health=100;cpu.health=100;player.energy=0;cpu.energy=0;player.x=290;cpu.x=810;elapsed=0;timer=60;roundOver=false;$("round-banner").classList.add("hidden");},1800);}
   else{$("round-banner").textContent=(roundWins[0]>roundWins[1]?"VICTORY":"DEFEAT")+"  ·  "+roundWins[0]+" — "+roundWins[1];}
@@ -152,6 +156,8 @@ function drawFighter(f){
   const phase=f.animTime, bob=f.grounded?(moving?Math.abs(Math.sin(phase*12))*3:Math.sin(phase*2)*1.5):0;
   const lean=attacking?Math.min(13,f.actionTime*35):moving?3:0;
   c.save();c.translate(x,y-bob);c.scale(face,1);
+  if(f.potatoTime>0){c.shadowColor="#d9a45b";c.shadowBlur=25;c.fillStyle="#b9793f";c.beginPath();c.ellipse(0,-83,31,23,-.25,0,Math.PI*2);c.fill();c.shadowBlur=0;c.fillStyle="#4a2b1a";for(const [px,py] of [[-12,-89],[9,-79],[2,-94]]){c.beginPath();c.arc(px,py,2.2,0,Math.PI*2);c.fill();}c.fillStyle="#ffe28a";c.font="700 11px Rajdhani";c.textAlign="center";c.fillText("POTATO MODE",0,-119);c.restore();return;}
+  if(f.hexTime>0){c.strokeStyle="#c6a0ff";c.lineWidth=5;c.shadowColor="#a879ed";c.shadowBlur=24;c.beginPath();c.arc(0,-87,53+Math.sin(phase*18)*5,0,Math.PI*2);c.stroke();c.shadowBlur=0;}
   if(f.potatoTime>0){c.shadowColor="#d9a45b";c.shadowBlur=25;c.fillStyle="#b9793f";c.beginPath();c.ellipse(0,-83,31,23,-.25,0,Math.PI*2);c.fill();c.shadowBlur=0;c.fillStyle="#4a2b1a";for(const [px,py] of [[-12,-89],[9,-79],[2,-94]]){c.beginPath();c.arc(px,py,2.2,0,Math.PI*2);c.fill();}c.fillStyle="#ffe28a";c.font="700 11px Rajdhani";c.textAlign="center";c.fillText("POTATO MODE",0,-119);c.restore();return;}
   if(f.hexTime>0){c.strokeStyle="#c6a0ff";c.lineWidth=5;c.shadowColor="#a879ed";c.shadowBlur=24;c.beginPath();c.arc(0,-87,53+Math.sin(phase*18)*5,0,Math.PI*2);c.stroke();c.shadowBlur=0;}
   if(f.hitFlash>0)c.globalAlpha=.55+Math.sin(elapsed*40)*.3;
@@ -194,8 +200,26 @@ function drawArena(){
   g.strokeStyle="#ffffff12";for(let i=0;i<12;i++){g.beginPath();g.moveTo(550,420);g.lineTo(i*110,520);g.stroke();}
   g.fillStyle="#ffffff10";g.font="700 17px Rajdhani";g.textAlign="center";g.fillText(arena==="temple"?"SKY TEMPLE":arena==="dojo"?"CRIMSON DOJO":"NEO TOKYO",550,48);
 }
+function drawMemeSuperFX(attacker, defender){
+  if(!attacker || !defender || !["super","bossSuper"].includes(attacker.action) || attacker.actionTime<=0) return;
+  const c=ctx, x=defender.x, y=300, pulse=1+Math.sin(elapsed*38)*.08;
+  if(attacker.data.id==="yatra"){
+    c.save();c.translate(x,y);c.scale(pulse,1);
+    c.fillStyle="#3b2b22";c.fillRect(-31,-72,62,68);
+    c.fillStyle="#d9a45b";c.fillRect(-25,-66,50,54);
+    c.fillStyle="#fff0b2";c.font="700 10px Rajdhani";c.textAlign="center";c.fillText("ALOO → SONA",0,-78);
+    c.fillStyle="#ffd16b";c.shadowColor="#ffd16b";c.shadowBlur=20;
+    for(let i=0;i<3;i++){c.fillRect(38+i*8,-20-i*4,7,12);}
+    c.restore();
+  } else if(attacker.data.id==="deedee"){
+    c.save();c.translate(x,y);c.strokeStyle="#c6a0ff";c.shadowColor="#a879ed";c.shadowBlur=24;c.lineWidth=3;
+    for(let r=18;r<=58;r+=20){c.beginPath();c.arc(0,0,r+Math.sin(elapsed*25+r)*3,0,Math.PI*2);c.stroke();}
+    c.fillStyle="#e2ceff";c.font="700 12px Rajdhani";c.textAlign="center";c.fillText("JADU HOBE",0,-70);c.restore();
+  }
+}
 function draw(){
   ctx.clearRect(0,0,1100,520);drawArena();drawFighter(player);drawFighter(cpu);
+  drawMemeSuperFX(player,cpu);drawMemeSuperFX(cpu,player);
   if((player.action==="super"||player.action==="bossSuper")&&player.actionTime>0){ctx.fillStyle=player.data.glow;ctx.globalAlpha=.7;ctx.beginPath();ctx.ellipse(player.x+player.facing*90,315,85,17,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
 }
 function loop(now){const dt=Math.min(.04,(now-last)/1000||0);last=now;update(dt);draw();raf=requestAnimationFrame(loop);}
