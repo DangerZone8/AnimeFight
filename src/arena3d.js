@@ -163,7 +163,7 @@ export function createArena3D(container) {
   const key=new THREE.DirectionalLight("#fff0d8",3.1);key.position.set(-5,9,8);key.castShadow=true;key.shadow.mapSize.set(1024,1024);key.shadow.camera.left=-11;key.shadow.camera.right=11;key.shadow.camera.top=11;key.shadow.camera.bottom=-11;scene.add(key);
   const rim=new THREE.PointLight("#5e9cff",48,18);rim.position.set(5,4,-2);scene.add(rim);
   const warm=new THREE.PointLight("#ff7a56",30,16);warm.position.set(-6,3,2);scene.add(warm);
-  const arenaRoot=makeArena(scene,"neon");
+  let arenaRoot=makeArena(scene,"neon");
   const fighters=[makeFighter("ember"),makeFighter("coil")];fighters.forEach(f=>scene.add(f));
   const effects=[];
   function resize(){
@@ -172,7 +172,7 @@ export function createArena3D(container) {
   }
   const observer=new ResizeObserver(resize);observer.observe(container);resize();
   function setArena(type){
-    scene.remove(arenaRoot);arenaRoot.clear();const next=makeArena(scene,type);arenaRoot.add(...next.children);scene.remove(next);
+    scene.remove(arenaRoot);arenaRoot=makeArena(scene,type);
   }
   function setFighters(a,b){
     for(const f of fighters)scene.remove(f);
