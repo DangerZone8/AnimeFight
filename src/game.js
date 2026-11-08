@@ -48,7 +48,7 @@ function startGame(){
   timer=60; elapsed=0; roundWins=[0,0]; roundOver=false; paused=false; running=true; $("round-banner").classList.add("hidden"); last=performance.now(); cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
 }
 function backToMenu(){running=false;cancelAnimationFrame(raf);$("fight-screen").classList.add("hidden");$("menu-screen").classList.remove("hidden");}
-function action(f,a){if(f.cooldown>0||f.action==="hit")return false;f.action=a;f.actionTime=a==="special"?0.48:a==="heavy"?0.36:a==="attack"?0.23:0.3;f.cooldown=a==="special"?0.85:a==="heavy"?0.48:0.27;f.guard=a==="guard";f.attackConnected=false;if(!f.isCPU)playerLastAction=a;return true;}
+function action(f,a){if(f.cooldown>0||f.action==="hit")return false;f.action=a;f.actionTime=a==="special"?0.48:a==="heavy"?0.36:a==="attack"?0.23:0.3;f.cooldown=(a==="special"?0.85:a==="heavy"?0.48:0.27)*(f.isCPU?brain.cooldownScale:1);f.guard=a==="guard";f.attackConnected=false;if(!f.isCPU)playerLastAction=a;return true;}
 function hit(attacker, defender, kind){
   const profile=ATTACKS[kind];
   if(!profile||attacker.attackConnected||!isInHitRange(attacker,defender,profile.reach))return false;
@@ -56,7 +56,7 @@ function hit(attacker, defender, kind){
   if(defender.guard){defender.health=Math.max(0,defender.health-(kind==="special"?5:2));defender.energy=Math.min(100,defender.energy+7);return false;}
   attacker.combo=nextCombo(attacker.combo,attacker.comboAge);
   attacker.comboAge=0;
-  const damage=comboDamage(profile.damage*attacker.data.power,attacker.combo);
+  const damage=comboDamage(profile.damage*attacker.data.power*(attacker.isCPU?brain.damageScale:1),attacker.combo);
   defender.health=Math.max(0,defender.health-damage);
   defender.energy=Math.min(100,defender.energy+12);
   attacker.energy=Math.min(100,attacker.energy+(kind==="special"?0:8));
@@ -81,9 +81,9 @@ function cpuThink(){
   const decision=brain.choose({distance,selfHealth:cpu.health,enemyHealth:player.health,selfEnergy:cpu.energy,enemyAction:player.action,selfCooldown:cpu.cooldown});
   $("cpu-status").textContent="CPU: "+decision.toUpperCase();
   cpu.vx=0;cpu.guard=false;
-  if(decision==="approach"){cpu.vx=cpu.facing*2.8;cpu.action="run";}
+  if(decision==="approach"){cpu.vx=cpu.facing*brain.moveSpeed;cpu.action="run";}
   else if(decision==="guard"){cpu.guard=true;cpu.action="guard";}
-  else if(decision==="evade"){cpu.vx=-cpu.facing*4;cpu.action="run";}
+  else if(decision==="evade"){cpu.vx=-cpu.facing*brain.moveSpeed*1.12;cpu.action="run";}
   else if(decision==="counter"){if(action(cpu,"heavy"))hit(cpu,player,"heavy");}
   else if(decision==="special"&&cpu.energy>=35){if(action(cpu,"special")){cpu.energy-=35;hit(cpu,player,"special");}}
   else if(decision==="heavy"){if(action(cpu,"heavy"))hit(cpu,player,"heavy");}
@@ -95,7 +95,7 @@ function update(dt){
   playerInput();
   cpu.facing=player.x<cpu.x?-1:1;player.facing=player.x<cpu.x?1:-1;
   if(Math.random()<Math.min(1,dt*2.2)){brain.observe(playerLastAction);playerLastAction="approach";}
-  if(Math.random()<dt*3)cpuThink();
+  if(Math.random()<Math.min(1,dt*brain.thinkRate))cpuThink();
   for(const f of [player,cpu]){
     f.x+=f.vx;f.x=Math.max(48,Math.min(1052,f.x));f.vx*=f.action==="hit"?.88:.72;
     f.y+=f.vy;f.vy+=30*dt;if(f.y>=0){f.y=0;f.vy=0;f.grounded=true;}
