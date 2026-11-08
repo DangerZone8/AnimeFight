@@ -33,8 +33,8 @@ export const BANTER = Object.freeze({
     voice: { pitch: 0.82, rate: 0.9 },
     intro: "Relax. I have already seen seventeen ways this goes wrong for you.",
     introJa: "大丈夫。君が負ける未来はもう見えている。",
-    super: "DOMAIN EXPANSION: TERMS AND CONDITIONS!",
-    superJa: "領域展開！利用規約は読んだかな？",
+    super: "DOMAIN EXPANSION: UNLIMITED PERSONAL SPACE VIOLATION! Turn around. Your aura is facing the wrong way!",
+    superJa: "領域展開！そのオーラ、向きが間違っているぞ！",
     meme: "You have mistaken my kindness for a functioning health bar.",
     win: "You couldn't even reach the loading screen."
   },
