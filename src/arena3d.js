@@ -55,6 +55,14 @@ function makeFighter(id) {
   mesh(new THREE.BoxGeometry(.68*meta.shoulder,.13,.48),trim,body,0,.47,.015);
   mesh(new THREE.BoxGeometry(.52,.09,.52),dark,body,0,-.28,.01);
   mesh(new THREE.BoxGeometry(.2,.22,.08),accent,body,0,.02,.275);
+  // Layered anime battle costume: chest piping, waist sash, shoulder guards and split coat panels.
+  const sash=mesh(new THREE.BoxGeometry(.76,.105,.57),trim,body,0,-.205,.015);sash.rotation.z=-.08;
+  mesh(new THREE.BoxGeometry(.16,.16,.035),accent,body,.19,-.205,.315).rotation.z=.2;
+  for(const side of [-1,1]){
+    const pauldron=mesh(new THREE.SphereGeometry(.19,14,10),trim,body,side*.43,.43,.015);pauldron.scale.set(1.25,.72,.92);
+    const panel=mesh(new THREE.BoxGeometry(.2,.52,.07),cloth,body,side*.23,-.51,.16);panel.rotation.z=side*.12;
+    mesh(new THREE.BoxGeometry(.205,.045,.08),accent,body,side*.23,-.34,.205);
+  }
   for(let i=0;i<3;i++)mesh(new THREE.BoxGeometry(.055,.22,.025),trim,body,-.16+i*.16,.08,.292);
   // Arms with oversized cuffs and articulated forearms.
   const arms=[];
@@ -67,14 +75,18 @@ function makeFighter(id) {
   }
   // Head, face, nose, eyes and brows.
   const head=new THREE.Group();head.position.set(0,.88,.015);body.add(head);
-  mesh(new THREE.SphereGeometry(.265,24,20),skin,head,0,0,0).scale.set(.88,1.12,.86);
+  const face=mesh(new THREE.SphereGeometry(.265,28,24),skin,head,0,0,0);face.scale.set(.88,1.12,.86);
   mesh(new THREE.SphereGeometry(.045,12,10),skin,head,0,-.055,.222);
+  const eyes=[],brows=[];
   for(const side of [-1,1]){
-    mesh(new THREE.SphereGeometry(.038,12,8),mat("#f8f5ef"),head,side*.095,.045,.222).scale.set(1.15,.65,.42);
-    mesh(new THREE.SphereGeometry(.018,10,8),dark,head,side*.095,.045,.24);
-    mesh(new THREE.BoxGeometry(.075,.018,.025),hair,head,side*.095,.105,.218).rotation.z=side*.12;
+    const eye=mesh(new THREE.SphereGeometry(.041,14,10),mat("#fffaf1"),head,side*.095,.045,.222);eye.scale.set(1.15,.68,.42);eyes.push(eye);
+    const iris=mesh(new THREE.SphereGeometry(.021,12,10),mat("#26324c"),head,side*.095,.045,.242);iris.scale.set(.9,1.1,.5);
+    mesh(new THREE.SphereGeometry(.009,8,8),mat("#ffffff"),head,side*.091,.052,.253);
+    const brow=mesh(new THREE.BoxGeometry(.085,.022,.026),hair,head,side*.095,.112,.218);brow.rotation.z=side*.1;brows.push(brow);
   }
-  mesh(new THREE.BoxGeometry(.105,.018,.018),dark,head,0,-.13,.218);
+  const mouth=mesh(new THREE.SphereGeometry(.052,14,10),dark,head,0,-.135,.215);mouth.scale.set(.78,.16,.25);
+  const mouthLine=mesh(new THREE.BoxGeometry(.09,.012,.015),mat("#713f45"),head,0,-.132,.239);
+  const nose=mesh(new THREE.SphereGeometry(.026,10,8),skin,head,0,-.045,.245);nose.scale.set(.75,1,.6);
   // Signature hair silhouettes are original and deliberately varied.
   if(p.hairStyle==="crest"||p.hairStyle==="spikes"){
     const count=p.hairStyle==="crest"?7:9;
@@ -112,7 +124,7 @@ function makeFighter(id) {
   }
   const aura=new THREE.Mesh(new THREE.SphereGeometry(1.18,20,16),new THREE.MeshBasicMaterial({color:p.accent,transparent:true,opacity:.055,side:THREE.BackSide}));
   aura.position.y=.08;body.add(aura);
-  root.userData={id,body,arms,legs,aura,accent:p.accent,baseY:0,baseScale:scale};
+  root.userData={id,body,arms,legs,aura,head,eyes,brows,mouth,mouthLine,accent:p.accent,baseY:0,baseScale:scale};
   return root;
 }
 
@@ -124,6 +136,8 @@ function makeArena(scene, type) {
   const grid=new THREE.GridHelper(17,34,"#85a4d7","#35456c");grid.position.y=.05;group.add(grid);
   const ring=mesh(new THREE.TorusGeometry(6.2,.025,8,100),mat("#a4c6ed",.35,.4),group,0,.055,0);ring.rotation.x=Math.PI/2;
   const ring2=mesh(new THREE.TorusGeometry(3.4,.018,8,100),mat("#6d8cbf",.35,.4),group,0,.06,0);ring2.rotation.x=Math.PI/2;
+  const centerSigil=mesh(new THREE.TorusGeometry(1.05,.035,8,64),mat(type==="temple"?"#9ce8ff":type==="dojo"?"#ff9a80":"#8bcaff",.25,.45),group,0,.065,0);centerSigil.rotation.x=Math.PI/2;
+  for(let i=0;i<8;i++){const rune=mesh(new THREE.BoxGeometry(.055,.018,.62),mat(i%2?"#7da7d8":"#e4b66c",.35,.35),group,Math.cos(i*Math.PI/4)*4.8,.065,Math.sin(i*Math.PI/4)*4.8);rune.rotation.y=-i*Math.PI/4;}
   const back=mat(type==="temple"?"#7086a8":type==="dojo"?"#57344b":"#293b67",.8,.15);
   for(let i=0;i<13;i++){
     const x=(i-6)*1.55, height=1.5+(i*7%5)*.55;
@@ -134,6 +148,25 @@ function makeArena(scene, type) {
   for(const x of [-7.4,7.4]){
     const pillar=mesh(new THREE.CylinderGeometry(.3,.42,3.5,10),back,group,x,1.7,-2.9);
     mesh(new THREE.CylinderGeometry(.48,.48,.22,10),mat("#c5a96d",.5,.35),group,x,3.4,-2.9);
+    mesh(new THREE.CylinderGeometry(.055,.055,2.7,8),mat(type==="dojo"?"#ff8b78":"#80dfff",.25,.25,type==="dojo"?"#ff8b78":"#80dfff"),group,x,1.8,-2.55);
+  }
+  // Distinct stage landmarks make each arena read as its own place.
+  if(type==="temple"){
+    for(let x=-5;x<=5;x+=10){
+      const arch=mesh(new THREE.TorusGeometry(1.45,.12,10,32,Math.PI),mat("#d8c59a",.55,.25),group,x,2.1,-6.3);arch.rotation.z=Math.PI;
+      mesh(new THREE.BoxGeometry(.24,3.2,.24),mat("#c4b28d",.6,.12),group,x-1.35,1.45,-6.3);
+      mesh(new THREE.BoxGeometry(.24,3.2,.24),mat("#c4b28d",.6,.12),group,x+1.35,1.45,-6.3);
+    }
+  }else if(type==="dojo"){
+    for(let x=-6;x<=6;x+=3){
+      const banner=mesh(new THREE.BoxGeometry(.8,2.1,.08),mat("#792f45",.8,.05),group,x,3.2,-6.8);
+      mesh(new THREE.BoxGeometry(.48,.08,.1),mat("#e7b878",.4,.25),group,x,3.3,-6.72);
+    }
+  }else{
+    for(let x=-6;x<=6;x+=2){
+      const billboard=mesh(new THREE.BoxGeometry(1.25,.62,.12),mat("#233f76",.35,.25,"#347dff"),group,x,3.25,-6.7);
+      mesh(new THREE.BoxGeometry(.8,.07,.035),mat("#8feaff",.25,.15,"#8feaff"),group,x,3.25,-6.61);
+    }
   }
   const sky=new THREE.Mesh(new THREE.SphereGeometry(45,24,16),new THREE.MeshBasicMaterial({color:type==="temple"?"#182b4c":type==="dojo"?"#281b36":"#0c1731",side:THREE.BackSide}));
   group.add(sky);
@@ -204,6 +237,14 @@ export function createArena3D(container) {
       d.arms[0].rotation.z=f.action==="grab"?-.45*strike:0;
       if(f.action==="jumpPunch"||f.action==="jumpKick"){d.body.rotation.x=-.2;d.body.position.y+=.16;}
       if(f.action==="uppercut")d.body.rotation.x=-.16*strike;
+      // Readable anime facial acting: focused guard, impact grimace and super-move shout.
+      const fierce=f.action==="special"||f.action==="attack"||f.action==="uppercut"||f.action==="kick"||f.action==="sweep";
+      const hurt=f.action==="hit"||f.action==="knockdown";
+      d.brows[0].rotation.z=fierce?.38:hurt?-.18:.1;
+      d.brows[1].rotation.z=fierce?-.38:hurt?.18:-.1;
+      d.eyes.forEach((eye)=>{eye.scale.y=f.guard?.48:hurt?.82:.68;});
+      d.mouth.scale.y=f.action==="special"?.9:hurt?.58:f.guard?.12:.2;
+      d.mouthLine.visible=!["special","hit","knockdown"].includes(f.action);
       d.aura.material.opacity=f.action==="special"?.2:.055;
       if(f.action==="special"&&previous[i]!=="special")burst(model.position.x+(f.facing>0?.9:-.9),d.accent);
       previous[i]=f.action;
