@@ -19,6 +19,7 @@ await rm("public", { recursive: true, force: true });
 await mkdir("public", { recursive: true });
 await cp("index.html", "public/index.html");
 await cp("src", "public/src", { recursive: true });
+await cp("assets", "public/assets", { recursive: true });
 
 for (const file of ["public/index.html", "public/src/game.js", "public/src/ai.js", "public/src/style.css"]) {
   await access(file);
