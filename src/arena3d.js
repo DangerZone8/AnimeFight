@@ -112,7 +112,7 @@ function makeFighter(id) {
   }
   const aura=new THREE.Mesh(new THREE.SphereGeometry(1.18,20,16),new THREE.MeshBasicMaterial({color:p.accent,transparent:true,opacity:.055,side:THREE.BackSide}));
   aura.position.y=.08;body.add(aura);
-  root.userData={id,body,arms,legs,aura,accent:p.accent,baseY:0};
+  root.userData={id,body,arms,legs,aura,accent:p.accent,baseY:0,baseScale:scale};
   return root;
 }
 
@@ -190,7 +190,7 @@ export function createArena3D(container) {
       model.rotation.y=f.facing>0?Math.PI/2:-Math.PI/2;
       const t=state.elapsed,move=Math.abs(f.vx)>.4;
       d.body.position.y=(f.y>0?0:Math.abs(Math.sin(t*9+i))* (move?.055:.018));
-      d.body.scale.y=f.crouch?.72:1;d.body.position.z=f.crouch?.08:0;
+      d.body.scale.y=d.baseScale*(f.crouch?.72:1);d.body.position.z=f.crouch?.08:0;
       d.body.rotation.z=move?Math.sin(t*11+i)*.045:0;
       d.legs[0].rotation.x=move?Math.sin(t*13+i)*.48:0;
       d.legs[1].rotation.x=move?Math.sin(t*13+i+Math.PI)*.48:0;
