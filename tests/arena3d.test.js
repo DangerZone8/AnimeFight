@@ -40,3 +40,9 @@ test("anime fighters have expressive facial rigs and layered costume details", (
 test("arenas have stage-specific landmarks and enhanced floor detailing", () => {
   for (const token of ["centerSigil","if(type===\"temple\")","else if(type===\"dojo\")","billboard","banner","rune"]) assert.ok(renderer.includes(token), `missing arena feature: ${token}`);
 });
+
+test("combat animation has anticipation, active strike, recovery and impact feedback", () => {
+  for (const token of ["const windup=1-smooth","const extension=smooth","const recoil=smooth","impactBurst","cameraShake","d.forearms[0].rotation.x"]) assert.ok(renderer.includes(token), `missing combat animation feature: ${token}`);
+  assert.ok(renderer.includes('actionName==="kick"||actionName==="jumpKick"'));
+  assert.ok(renderer.includes('actionName==="sweep"?1.45*extension'));
+});
