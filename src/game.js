@@ -16,6 +16,38 @@ const canvas = $("game-canvas"), ctx = canvas.getContext("2d");
 let selected = 0, cpuSelected = 3, selectionSide = "player", player, cpu, brain, keys = new Set(), last = 0, elapsed = 0, timer = 60, running = false, paused = false, raf = 0, arena = "neon", roundOver = false, roundWins = [0,0], playerLastAction = "approach", localMode = false, comboBuffer = [], queuedCombo = null, soundEnabled = true, audioContext = null, roundResetTimer = null;
 let arena3d = null;
 const arena3dReady = Promise.resolve(null);
+let hitStop=0,cameraShake=0;
+const combatFX=[];
+const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
+const easeOut=t=>1-Math.pow(1-clamp(t),3);
+const easeInOut=t=>{t=clamp(t);return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;};
+const MOVE_TIMELINES={
+ attack:{startup:.28,active:.18,recovery:.54,reach:98,hitstop:.045},
+ heavy:{startup:.34,active:.16,recovery:.50,reach:126,hitstop:.075},
+ kick:{startup:.31,active:.20,recovery:.49,reach:132,hitstop:.065},
+ uppercut:{startup:.34,active:.18,recovery:.48,reach:120,hitstop:.09},
+ sweep:{startup:.38,active:.18,recovery:.44,reach:132,hitstop:.08},
+ jumpPunch:{startup:.25,active:.22,recovery:.53,reach:120,hitstop:.055},
+ jumpKick:{startup:.28,active:.22,recovery:.50,reach:142,hitstop:.07},
+ grab:{startup:.35,active:.18,recovery:.47,reach:100,hitstop:.10},
+ special:{startup:.42,active:.22,recovery:.36,reach:270,hitstop:.13},
+ triple:{startup:.18,active:.18,recovery:.64,reach:150,hitstop:.06},
+ double:{startup:.22,active:.2,recovery:.58,reach:138,hitstop:.06},
+ cross:{startup:.25,active:.2,recovery:.55,reach:140,hitstop:.06},
+ launcher:{startup:.30,active:.18,recovery:.52,reach:150,hitstop:.10},
+ finisher:{startup:.32,active:.20,recovery:.48,reach:155,hitstop:.12},
+ "double-heavy":{startup:.34,active:.18,recovery:.48,reach:150,hitstop:.10}
+};
+function moveProgress(f){
+ const p=1-clamp(f.actionTime/Math.max(.001,f.actionDuration||.34));
+ const m=MOVE_TIMELINES[f.action]||{startup:.28,active:.18,recovery:.54};
+ return {p,phase:p<m.startup?"startup":p<m.startup+m.active?"active":"recovery",wind:clamp(p/m.startup),strike:clamp((p-m.startup)/m.active),recover:clamp((p-m.startup-m.active)/m.recovery)};
+}
+function spawnImpact(x,y,color,power=1){
+ const count=Math.round(10+power*7);
+ for(let i=0;i<count;i++){const a=Math.PI*2*i/count+(Math.random()-.5)*.28,v=(2+Math.random()*5)*power;combatFX.push({x,y,vx:Math.cos(a)*v,vy:Math.sin(a)*v-1.5,life:.22+Math.random()*.22,max:.44,size:2+Math.random()*4,color});}
+ combatFX.push({x,y,ring:1,life:.22,max:.22,size:14+power*12,color});
+}
 function drawPortrait(canvasEl, fighter) {
   const c=canvasEl.getContext("2d"), w=canvasEl.width=160,h=canvasEl.height=130;
   c.clearRect(0,0,w,h); c.fillStyle=fighter.glow+"30"; c.beginPath(); c.arc(80,73,56,0,Math.PI*2); c.fill();
@@ -58,7 +90,7 @@ function startGame(){
 function backToMenu(){running=false;paused=false;clearTimeout(roundResetTimer);cancelAnimationFrame(raf);$("pause-overlay").classList.add("hidden");$("result-panel").classList.add("hidden");$("fight-screen").classList.add("hidden");$("menu-screen").classList.remove("hidden");}
 function action(f,a){
   if(f.cooldown>0||f.action==="hit"||f.action==="knockdown")return false;
-  f.action=a;f.moveName=a;f.actionTime=({special:1.05,grab:.58,uppercut:.52,sweep:.62,jumpPunch:.42,jumpKick:.5,kick:.48,heavy:.46,attack:.34,combo:.42,triple:.72,double:.52,cross:.56,launcher:.62,finisher:.72,"double-heavy":.62}[a]??.34);f.actionDuration=f.actionTime;
+  f.action=a;f.moveName=a;f.actionTime=({special:1.05,grab:.58,uppercut:.52,sweep:.62,jumpPunch:.42,jumpKick:.5,kick:.48,heavy:.46,attack:.34,combo:.42,triple:.72,double:.52,cross:.56,launcher:.62,finisher:.72,"double-heavy":.62}[a]??.34);f.actionDuration=f.actionTime;f.actionElapsed=0;f.pendingHit=null;f.hasConnected=false;
   f.cooldown=({special:1.25,grab:.68,uppercut:.52,sweep:.62,jumpPunch:.42,jumpKick:.48,kick:.42,heavy:.48,attack:.3}[a]??.3);
   f.guard=false;if(!f.isCPU)playerLastAction=a;playSfx(a);return true;
 }
@@ -79,15 +111,15 @@ function recordCombo(k){
 function hit(attacker, defender, kind){
   // Attacks resolve on their active animation frame, not on the input frame.
   const startup={attack:.105,combo:.12,heavy:.16,kick:.16,uppercut:.18,sweep:.19,jumpPunch:.12,jumpKick:.17,grab:.14,special:.34,triple:.18,double:.14,cross:.15,launcher:.18,finisher:.22,"double-heavy":.19};
-  attacker.pendingHit={defender,kind,delay:startup[kind]??.14};
+  attacker.pendingHit={defender,kind,delay:attacker.actionDuration*(MOVE_TIMELINES[kind]?.startup??.28)};
   return true;
 }
 function resolveHit(attacker, defender, kind){
-  const reach=kind==="special"?260:kind==="grab"?92:kind==="sweep"?118:kind==="uppercut"?112:kind==="jumpKick"?130:kind==="jumpPunch"?112:kind==="kick"?118:kind==="heavy"||kind==="double-heavy"?125:kind==="triple"||kind==="launcher"||kind==="finisher"?145:92;
-  if(Math.abs(attacker.x-defender.x)>reach)return false;
+  const profile=MOVE_TIMELINES[kind]||{reach:98,hitstop:.05};const reach=profile.reach;
+  if(Math.abs(attacker.x-defender.x)>reach||attacker.facing*(defender.x-attacker.x)<-8)return false;
   if(defender.guard&&kind!=="grab"&&kind!=="sweep"){defender.health=Math.max(0,defender.health-(kind==="special"?5:1));defender.energy=Math.min(100,defender.energy+6);defender.blockStun=.12;return false;}
   const base=kind==="special"?30:kind==="grab"?17:kind==="uppercut"?19:kind==="sweep"?17:kind==="jumpKick"?15:kind==="jumpPunch"?11:kind==="kick"?12:kind==="heavy"?13:kind==="double-heavy"?20:kind==="triple"?20:kind==="launcher"?23:kind==="finisher"?25:kind==="cross"?12:kind==="double"?14:7;
-  const damage=base*attacker.data.power;
+  const damage=base*attacker.data.power;attacker.hasConnected=true;hitStop=Math.max(hitStop,profile.hitstop||.05);cameraShake=Math.max(cameraShake,kind==="special"?13:kind==="heavy"||kind==="finisher"?8:4);spawnImpact((attacker.x+defender.x)/2,kind==="sweep"?365:300,attacker.data.glow,kind==="special"?2.2:kind==="heavy"||kind==="finisher"?1.5:1);
   defender.health=Math.max(0,defender.health-damage);defender.energy=Math.min(100,defender.energy+12);attacker.energy=Math.min(100,attacker.energy+(kind==="special"?0:8));defender.action=kind==="sweep"?"knockdown":"hit";defender.actionTime=kind==="sweep"?.72:kind==="grab"?.42:kind==="uppercut"?.48:.3;defender.actionDuration=defender.actionTime;defender.vx=attacker.facing*(kind==="sweep"?7:kind==="uppercut"?5:kind==="heavy"?8:4);if(kind==="uppercut")defender.vy=-6;if(kind==="grab")defender.vx=attacker.facing*2;defender.hitFlash=.15;return true;
 }
 function controlFighter(f,opponent,scheme){
@@ -133,6 +165,7 @@ function cpuThink(){
 }
 function update(dt){
   if(!running||paused||roundOver)return;
+  if(hitStop>0){hitStop=Math.max(0,hitStop-dt);dt*=.16;}else dt=Math.min(dt,.04);
   elapsed+=dt;timer=Math.max(0,60-elapsed);
   playerInput();
   player.facing=player.x<cpu.x?1:-1;cpu.facing=cpu.x<player.x?1:-1;
@@ -141,12 +174,13 @@ function update(dt){
   for(const f of [player,cpu]){
     f.x+=f.vx;f.x=Math.max(48,Math.min(1052,f.x));f.vx*=f.action==="hit"?.88:.72;
     f.y+=f.vy;f.vy+=30*dt;if(f.y>=0){f.y=0;f.vy=0;f.grounded=true;}
-    f.cooldown=Math.max(0,f.cooldown-dt);f.actionTime=Math.max(0,f.actionTime-dt);f.hitFlash=Math.max(0,f.hitFlash-dt);
+    f.cooldown=Math.max(0,f.cooldown-dt);f.actionTime=Math.max(0,f.actionTime-dt);f.actionElapsed=(f.actionElapsed||0)+dt;f.hitFlash=Math.max(0,f.hitFlash-dt);
     if(f.pendingHit){f.pendingHit.delay-=dt;if(f.pendingHit.delay<=0){const pending=f.pendingHit;f.pendingHit=null;resolveHit(f,pending.defender,pending.kind);}}
     if(f.actionTime===0&&!f.guard&&f.action!=="hit"&&f.action!=="knockdown"&&f.action!=="run"&&(f.action!=="jump"||f.grounded))f.action="idle";
     if((f.action==="hit"||f.action==="knockdown")&&f.actionTime===0)f.action="idle";
     if(!f.guard&&f.action==="guard")f.action="idle";
   }
+  for(let i=combatFX.length-1;i>=0;i--){const fx=combatFX[i];fx.life-=dt;fx.x+=fx.vx;fx.y+=fx.vy;fx.vx*=.91;fx.vy=fx.vy*.91+.12;if(fx.life<=0)combatFX.splice(i,1);}cameraShake=Math.max(0,cameraShake-dt*34);
   if(timer<=0||player.health<=0||cpu.health<=0)finishRound();
   $("player-health").style.width=player.health+"%";$("cpu-health").style.width=cpu.health+"%";$("player-energy").style.width=player.energy+"%";$("cpu-energy").style.width=cpu.energy+"%";$("timer").textContent=String(Math.ceil(timer)).padStart(2,"0");
   $("player-shakti").textContent=player.energy>=100?"SHAKTI READY!":"SHAKTI "+Math.floor(player.energy)+"%";$("cpu-shakti").textContent=cpu.energy>=100?"READY!":"SHAKTI "+Math.floor(cpu.energy)+"%";
@@ -166,22 +200,22 @@ function finishRound(){
   }
 }
 function drawFighter(f){
-  const c=ctx, x=f.x, ground=414-f.y, face=f.facing, t=Math.max(0,Math.min(1,1-(f.actionTime||0)/Math.max(.01,f.actionDuration||.34)));
+  const c=ctx, x=f.x, ground=414-f.y, face=f.facing, timeline=moveProgress(f), t=timeline.p;
   const actionName=f.action, attacking=["attack","heavy","combo","kick","uppercut","sweep","jumpPunch","jumpKick","grab","special","triple","double","cross","launcher","finisher","double-heavy"].includes(actionName);
-  const phase=attacking?(t<.28?"startup":t<.62?"active":"recovery"):"neutral";
+  const phase=attacking?timeline.phase:"neutral";const wind=easeInOut(timeline.wind),strike=easeOut(timeline.strike),recovery=easeInOut(timeline.recover);
   const wave=Math.sin(elapsed*7+(f.isCPU?1.4:0)), bob=f.grounded?Math.sin(elapsed*5+(f.isCPU?1:0))*2:0;
   let lean=actionName==="hit"?-.24:actionName==="knockdown"?-.8:actionName==="run"?.12:phase==="startup"?-.18:phase==="active"?.16:phase==="recovery"?-.12:0;
   let armA=-.55, armB=.35, legA=.08, legB=-.08, torsoY=-105, headY=-151;
   if(actionName==="guard"){armA=-1.2;armB=-.55;}
   if(actionName==="attack"||actionName==="heavy"||actionName==="combo"||actionName==="triple"||actionName==="double"||actionName==="cross"||actionName==="launcher"||actionName==="finisher"||actionName==="double-heavy"){
-    armA=phase==="startup"?-1.9:phase==="active"?-.08:1.15;armB=-.85;
+    armA=phase==="startup"?-1.85+wind*.35:phase==="active"?-1.5+strike*1.48:recovery*1.15;armB=-.85+wind*.18;
   }
-  if(actionName==="kick"||actionName==="jumpKick"){legA=phase==="startup"?-.9:phase==="active"?1.25:.2;armA=-1.15;armB=-.7;}
-  if(actionName==="jumpPunch"){armA=phase==="active"?-.05:-1.6;legA=-.4;legB=.5;}
+  if(actionName==="kick"||actionName==="jumpKick"){legA=phase==="startup"?-.95+wind*.2:phase==="active"?-.75+strike*2.05:1.3-recovery*1.1;armA=-1.15;armB=-.7;}
+  if(actionName==="jumpPunch"){armA=phase==="active"?-1.55+strike*1.5:-1.6+wind*.2;legA=-.4;legB=.5;}
   if(actionName==="uppercut"){armA=phase==="active"?-2.3:-1.6;lean=.12;}
-  if(actionName==="sweep"){legA=phase==="active"?1.45:.15;torsoY=-68;headY=-113;armA=-1.25;armB=-.6;}
-  if(actionName==="grab"){armA=phase==="active"?-.05:-1.25;armB=phase==="active"?-.25:-.8;}
-  if(actionName==="special"){armA=phase==="active"?-.1:-1.7;armB=phase==="active"?-.35:-1.5;}
+  if(actionName==="sweep"){legA=phase==="active"?-.25+strike*1.7:.15+wind*.3;torsoY=-68;headY=-113;armA=-1.25;armB=-.6;}
+  if(actionName==="grab"){armA=phase==="active"?-1.15+strike*1.1:-1.25+wind*.18;armB=phase==="active"?-.9+strike*.65:-.8;}
+  if(actionName==="special"){armA=phase==="active"?-1.7+strike*1.6:-1.7+wind*.2;armB=phase==="active"?-1.5+strike*1.1:-1.5;}
   if(actionName==="hit"){armA=1.25;armB=-1.25;legA=-.3;legB=.25;}
   if(actionName==="knockdown"){armA=1.6;armB=-1.4;legA=1.2;legB=-.8;}
   if(actionName==="run"){armA=-.9+wave*.2;armB=.8-wave*.2;legA=.65;legB=-.65;}
@@ -229,7 +263,7 @@ function drawArena(){
   g.fillStyle="#ffffff10";g.font="700 17px Rajdhani";g.textAlign="center";g.fillText(arena==="temple"?"SKY TEMPLE":arena==="dojo"?"CRIMSON DOJO":"NEO TOKYO",550,48);
 }
 function draw(){
-  ctx.clearRect(0,0,1100,520);drawArena();drawFighter(player);drawFighter(cpu);
+  ctx.save();if(cameraShake>0)ctx.translate((Math.random()-.5)*cameraShake,(Math.random()-.5)*cameraShake);ctx.clearRect(0,0,1100,520);drawArena();drawFighter(player);drawFighter(cpu);for(const fx of combatFX){ctx.save();ctx.globalAlpha=clamp(fx.life/fx.max);ctx.strokeStyle=fx.color;ctx.fillStyle=fx.color;ctx.shadowColor=fx.color;ctx.shadowBlur=12;if(fx.ring){ctx.lineWidth=3;ctx.beginPath();ctx.arc(fx.x,fx.y,fx.size*(1-fx.life/fx.max)+4,0,Math.PI*2);ctx.stroke();}else{ctx.beginPath();ctx.arc(fx.x,fx.y,fx.size*clamp(fx.life/fx.max),0,Math.PI*2);ctx.fill();}ctx.restore();}ctx.restore();
   if(player.action==="special"&&player.actionTime>0){ctx.fillStyle=player.data.glow;ctx.globalAlpha=.7;ctx.beginPath();ctx.ellipse(player.x+player.facing*90,315,85,17,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
 }
 function loop(now){const dt=Math.min(.04,(now-last)/1000||0);last=now;update(dt);draw();raf=requestAnimationFrame(loop);}
