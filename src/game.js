@@ -37,7 +37,7 @@ function renderRoster(){
 renderRoster();
 
 class Fighter {
-  constructor(x, data, facing, isCPU=false){this.x=x;this.y=0;this.vx=0;this.vy=0;this.data=data;this.facing=facing;this.health=100;this.energy=0;this.grounded=true;this.action="idle";this.actionTime=0;this.cooldown=0;this.guard=false;this.isCPU=isCPU;this.hitFlash=0;this.combo=0;this.comboAge=99;this.attackConnected=false;this.animTime=Math.random()*6;}
+  constructor(x, data, facing, isCPU=false){this.x=x;this.y=0;this.vx=0;this.vy=0;this.data=data;this.facing=facing;this.health=100;this.energy=0;this.grounded=true;this.action="idle";this.actionTime=0;this.cooldown=0;this.guard=false;this.isCPU=isCPU;this.isBoss=isCPU&&["sorcerer","hero"].includes(data.id);this.hitFlash=0;this.combo=0;this.comboAge=99;this.attackConnected=false;this.animTime=Math.random()*6;}
 }
 function startGame(){
   $("menu-screen").classList.add("hidden"); $("fight-screen").classList.remove("hidden");
@@ -48,7 +48,7 @@ function startGame(){
   timer=60; elapsed=0; roundWins=[0,0]; roundOver=false; paused=false; running=true; $("round-banner").classList.add("hidden"); last=performance.now(); cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
 }
 function backToMenu(){running=false;cancelAnimationFrame(raf);$("fight-screen").classList.add("hidden");$("menu-screen").classList.remove("hidden");}
-function action(f,a){if(f.cooldown>0||f.action==="hit")return false;f.action=a;f.actionTime=a==="special"?0.48:a==="heavy"?0.36:a==="attack"?0.23:0.3;f.cooldown=(a==="special"?0.85:a==="heavy"?0.48:0.27)*(f.isCPU?brain.cooldownScale:1);f.guard=a==="guard";f.attackConnected=false;if(!f.isCPU)playerLastAction=a;return true;}
+function action(f,a){if(f.cooldown>0||f.action==="hit")return false;const profile=ATTACKS[a];if(profile&&f.energy<profile.cost)return false;f.action=a;f.actionTime=a==="super"||a==="bossSuper"?0.62:a==="grab"?0.42:a==="kick"?0.36:0.23;f.cooldown=(profile?.cooldown??0.25)*(f.isCPU?brain.cooldownScale:1);f.guard=a==="guard";f.attackConnected=false;if(!f.isCPU)playerLastAction=a;return true;}
 function hit(attacker, defender, kind){
   const profile=ATTACKS[kind];
   if(!profile||attacker.attackConnected||!isInHitRange(attacker,defender,profile.reach))return false;
@@ -59,7 +59,7 @@ function hit(attacker, defender, kind){
   const damage=comboDamage(profile.damage*attacker.data.power*(attacker.isCPU?brain.damageScale:1),attacker.combo);
   defender.health=Math.max(0,defender.health-damage);
   defender.energy=Math.min(100,defender.energy+12);
-  attacker.energy=Math.min(100,attacker.energy+(kind==="special"?0:8));
+  attacker.energy=Math.min(100,attacker.energy+(move==="super"||move==="bossSuper"?0:8));
   defender.action="hit";defender.actionTime=.2;defender.vx=attacker.facing*profile.push;defender.hitFlash=.15;
   $("cpu-status").textContent=(attacker.isCPU?"CPU":"PLAYER")+" COMBO ×"+attacker.combo;
   return true;
@@ -140,12 +140,12 @@ function drawFighter(f){
   c.fillStyle="#fff";c.fillRect(-12,-132,8,4);c.fillRect(5,-132,8,4);
   c.fillStyle="#20203a";c.fillRect(-9,-132,4,4);c.fillRect(8,-132,4,4);
   c.strokeStyle="#8c4e4a";c.lineWidth=2;c.beginPath();c.moveTo(-4,-117);c.lineTo(5,-117);c.stroke();
-  const reach=attacking?39+lean:f.guard?9:moving?24+Math.sin(phase*12)*7:19;
+  const reach=attacking?(f.action==="kick"?58:f.action==="grab"?48:39)+lean:f.guard?9:moving?24+Math.sin(phase*12)*7:19;
   c.lineCap="round";c.strokeStyle=col;c.lineWidth=12;c.beginPath();c.moveTo(17,-99);c.lineTo(reach,-91);c.stroke();
   c.strokeStyle=skin;c.lineWidth=9;c.beginPath();c.moveTo(reach,-91);c.lineTo(reach+13,-87);c.stroke();
   c.strokeStyle=col;c.lineWidth=11;c.beginPath();c.moveTo(-17,-99);c.lineTo(-29,-78+(f.guard?-17:0));c.stroke();
   c.strokeStyle=skin;c.lineWidth=8;c.beginPath();c.moveTo(-29,-78+(f.guard?-17:0));c.lineTo(-34,-70+(f.guard?-17:0));c.stroke();
-  if(f.action==="special"){c.shadowColor=f.data.glow;c.shadowBlur=32;c.fillStyle=f.data.glow;c.beginPath();c.arc(reach+22,-88,16+Math.sin(phase*20)*5,0,Math.PI*2);c.fill();c.shadowBlur=0;}
+  if(f.action==="super"||f.action==="bossSuper"){c.shadowColor=f.data.glow;c.shadowBlur=32;c.fillStyle=f.data.glow;c.beginPath();c.arc(reach+22,-88,16+Math.sin(phase*20)*5,0,Math.PI*2);c.fill();c.shadowBlur=0;}
   if(f.guard){c.strokeStyle="#78eaff";c.lineWidth=4;c.beginPath();c.arc(0,-88,48,-1.2,1.2);c.stroke();}
   if(f.combo>1&&f.comboAge<.65){c.fillStyle="#fff";c.font="700 13px Rajdhani";c.textAlign="center";c.fillText("×"+f.combo,0,-184);}
   c.restore();
@@ -163,7 +163,7 @@ function drawArena(){
 }
 function draw(){
   ctx.clearRect(0,0,1100,520);drawArena();drawFighter(player);drawFighter(cpu);
-  if(player.action==="special"&&player.actionTime>0){ctx.fillStyle=player.data.glow;ctx.globalAlpha=.7;ctx.beginPath();ctx.ellipse(player.x+player.facing*90,315,85,17,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
+  if((player.action==="super"||player.action==="bossSuper")&&player.actionTime>0){ctx.fillStyle=player.data.glow;ctx.globalAlpha=.7;ctx.beginPath();ctx.ellipse(player.x+player.facing*90,315,85,17,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
 }
 function loop(now){const dt=Math.min(.04,(now-last)/1000||0);last=now;update(dt);draw();raf=requestAnimationFrame(loop);}
 document.addEventListener("keydown",e=>{const k=e.key.toLowerCase();if(["arrowleft","arrowright","arrowup"," "].includes(k))e.preventDefault();keys.add(k);});
