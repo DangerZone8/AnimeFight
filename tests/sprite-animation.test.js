@@ -1,0 +1,37 @@
+import test from "node:test";
+import assert from "node:assert/strict";
+import { FIGHTER_ANIMATIONS, FIGHTER_ATLAS_FRAME, SpriteAtlasRenderer } from "../src/sprite-animation.js";
+
+test("sprite atlas contract defines distinct timed combat animation rows", () => {
+  assert.deepEqual(FIGHTER_ATLAS_FRAME, { width: 192, height: 192, columns: 8 });
+  for (const name of ["idle", "attack", "heavy", "kick", "jump", "hit", "knockdown", "guard"]) {
+    assert.ok(FIGHTER_ANIMATIONS[name], "missing " + name);
+    assert.ok(FIGHTER_ANIMATIONS[name].frames > 1);
+    assert.ok(FIGHTER_ANIMATIONS[name].fps > 0);
+  }
+  assert.equal(FIGHTER_ANIMATIONS.idle.loop, true);
+  assert.equal(FIGHTER_ANIMATIONS.attack.loop, false);
+});
+
+test("sprite renderer safely falls back when a fighter atlas is not available", () => {
+  const renderer = new SpriteAtlasRenderer({ ember: "/missing.png" }, class {});
+  const calls = [];
+  const ctx = { save(){}, restore(){}, translate(){}, scale(){}, drawImage(...args){calls.push(args);} };
+  assert.equal(renderer.draw(ctx, { data:{id:"ember"}, action:"idle", actionTime:0, actionDuration:0, x:10, y:0, facing:1, hitFlash:0 }, 0), false);
+  assert.equal(calls.length, 0);
+});
+
+test("sprite renderer crops a valid frame and mirrors the opponent", () => {
+  class FakeImage { constructor(){this.complete=true;this.naturalWidth=1536;this.naturalHeight=1152;} }
+  const renderer = new SpriteAtlasRenderer({ ember:"atlas.png" }, FakeImage);
+  renderer.images.set("ember", new FakeImage());
+  const calls = [], ctx = { save(){}, restore(){}, translate(...x){calls.push(["translate",...x]);}, scale(...x){calls.push(["scale",...x]);}, drawImage(...x){calls.push(["drawImage",...x]);} };
+  const fighter = { data:{id:"ember"}, action:"attack", actionTime:.2, actionDuration:.4, x:300, y:0, facing:-1, hitFlash:0 };
+  assert.equal(renderer.draw(ctx, fighter, 0), true);
+  assert.ok(calls.some(call=>call[0]==="scale"&&call[1]===-1));
+  const draw = calls.find(call=>call[0]==="drawImage");
+  assert.equal(draw[1], 576);
+  assert.equal(draw[2], 192);
+  assert.equal(draw[3], 192);
+  assert.equal(draw[4], 192);
+});
