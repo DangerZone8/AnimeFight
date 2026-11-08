@@ -62,9 +62,9 @@ function playerInput(){
   if(keys.has("d")||keys.has("arrowright")){player.vx=player.data.speed;player.facing=1;}
   if((keys.has("w")||keys.has("arrowup")||keys.has(" "))&&player.grounded){player.vy=-12;player.grounded=false;}
   if(keys.has("i")){player.guard=true;player.action="guard";}
-  if(keys.has("j")){action(player,"attack");keys.delete("j");}
-  if(keys.has("k")){action(player,"heavy");keys.delete("k");}
-  if(keys.has("l")&&player.energy>=35){if(action(player,"special")){player.energy-=35;keys.delete("l");}}
+  if(keys.has("j")){if(action(player,"attack"))hit(player,cpu,"attack");keys.delete("j");}
+  if(keys.has("k")){if(action(player,"heavy"))hit(player,cpu,"heavy");keys.delete("k");}
+  if(keys.has("l")&&player.energy>=35){if(action(player,"special")){player.energy-=35;hit(player,cpu,"special");keys.delete("l");}}
 }
 function cpuThink(){
   if(cpu.cooldown>0||cpu.action==="hit")return;
@@ -94,7 +94,6 @@ function update(dt){
     if(f.actionTime===0&&!f.guard&&f.action!=="hit"&&f.action!=="run")f.action="idle";
     if(f.action==="hit"&&f.actionTime===0)f.action="idle";
     if(!f.guard&&f.action==="guard")f.action="idle";
-    if(f.action==="special"&&f.actionTime>0&&!f.isCPU)hit(player,cpu,"special");
   }
   if(timer<=0||player.health<=0||cpu.health<=0)finishRound();
   $("player-health").style.width=player.health+"%";$("cpu-health").style.width=cpu.health+"%";$("player-energy").style.width=player.energy+"%";$("cpu-energy").style.width=cpu.energy+"%";$("timer").textContent=String(Math.ceil(timer)).padStart(2,"0");
