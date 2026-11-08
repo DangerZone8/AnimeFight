@@ -13,7 +13,7 @@ const roster = [
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("game-canvas"), ctx = canvas.getContext("2d");
-let selected = 0, cpuSelected = 3, selectionSide = "player", player, cpu, brain, keys = new Set(), last = 0, elapsed = 0, timer = 60, running = false, paused = false, raf = 0, arena = "neon", roundOver = false, roundWins = [0,0], playerLastAction = "approach", localMode = false, comboBuffer = [], queuedCombo = null, soundEnabled = true, audioContext = null;
+let selected = 0, cpuSelected = 3, selectionSide = "player", player, cpu, brain, keys = new Set(), last = 0, elapsed = 0, timer = 60, running = false, paused = false, raf = 0, arena = "neon", roundOver = false, roundWins = [0,0], playerLastAction = "approach", localMode = false, comboBuffer = [], queuedCombo = null, soundEnabled = true, audioContext = null, roundResetTimer = null;
 let arena3d = null;
 const arena3dReady = import("./arena3d.js").then(({createArena3D}) => {
   arena3d = createArena3D($("arena-wrap"));
@@ -49,7 +49,7 @@ class Fighter {
   constructor(x, data, facing, isCPU=false){this.x=x;this.y=0;this.vx=0;this.vy=0;this.data=data;this.facing=facing;this.health=100;this.energy=0;this.grounded=true;this.action="idle";this.actionTime=0;this.cooldown=0;this.guard=false;this.isCPU=isCPU;this.hitFlash=0;this.combo=0;}
 }
 function startGame(){
-  $("menu-screen").classList.add("hidden"); $("fight-screen").classList.remove("hidden");
+  clearTimeout(roundResetTimer);$("menu-screen").classList.add("hidden"); $("fight-screen").classList.remove("hidden");
   arena=$("arena").value; const hero=roster[selected], rival=roster[cpuSelected];
   localMode=$("match-mode").value==="local";
   player=new Fighter(290,hero,1); cpu=new Fighter(810,rival,-1,!localMode);
@@ -63,7 +63,7 @@ function startGame(){
   $("round-banner").classList.add("hidden");$("round-number").textContent="01";$("round-score").textContent="0 — 0";
   $("pause-button").textContent="Ⅱ PAUSE"; last=performance.now(); cancelAnimationFrame(raf); raf=requestAnimationFrame(loop);
 }
-function backToMenu(){running=false;cancelAnimationFrame(raf);$("fight-screen").classList.add("hidden");$("menu-screen").classList.remove("hidden");}
+function backToMenu(){running=false;paused=false;clearTimeout(roundResetTimer);cancelAnimationFrame(raf);$("pause-overlay").classList.add("hidden");$("result-panel").classList.add("hidden");$("fight-screen").classList.add("hidden");$("menu-screen").classList.remove("hidden");}
 function action(f,a){if(f.cooldown>0||f.action==="hit")return false;f.action=a;f.actionTime=a==="special"?.62:a==="combo"?.38:a==="grab"?.32:a==="heavy"?.36:a==="attack"?.23:.3;f.cooldown=a==="special"?1.05:a==="combo"?.55:a==="grab"?.55:a==="heavy"?.48:.27;f.guard=false;if(!f.isCPU)playerLastAction=a;playSfx(a);return true;}
 function playSfx(kind){
   if(!soundEnabled)return;
@@ -145,7 +145,7 @@ function finishRound(){
   $("round-banner").textContent=text+"  ·  "+roundWins[0]+" — "+roundWins[1];$("round-banner").classList.remove("hidden");
   $("round-score").textContent=roundWins[0]+" — "+roundWins[1];$("round-number").textContent=String(roundWins[0]+roundWins[1]+1).padStart(2,"0");
   const matchFinished=Math.max(...roundWins)>=2&&roundWins[0]!==roundWins[1];
-  if(!matchFinished){setTimeout(()=>{if(!running)return;player.health=100;cpu.health=100;player.energy=0;cpu.energy=0;player.x=290;cpu.x=810;elapsed=0;timer=60;roundOver=false;$("round-banner").classList.add("hidden");},1800);}
+  if(!matchFinished){roundResetTimer=setTimeout(()=>{if(!running)return;for(const f of [player,cpu]){f.health=100;f.energy=0;f.x=f===player?290:810;f.y=0;f.vx=0;f.vy=0;f.action="idle";f.actionTime=0;f.cooldown=0;f.guard=false;f.crouch=false;f.grounded=true;}elapsed=0;timer=60;roundOver=false;$("round-banner").classList.add("hidden");},1800);}
   else{
     const won=roundWins[0]>roundWins[1];$("round-banner").textContent=(won?"VICTORY":"DEFEAT")+"  ·  "+roundWins[0]+" — "+roundWins[1];
     $("result-title").textContent=won?"YOU WIN!":"MATCH OVER";$("result-copy").textContent=won?"The arena belongs to you.":"Run it back and change the outcome.";
@@ -196,6 +196,17 @@ document.addEventListener("keydown",e=>{
   if(k==="escape"&&running){togglePause();return;}
   if(k==="m"){soundEnabled=!soundEnabled;$("sound-toggle").textContent=soundEnabled?"SOUND: ON":"SOUND: OFF";return;}
   if(k==="n"){soundEnabled=false;$("sound-toggle").textContent="SOUND: OFF";return;}
+  if(!running&&$("menu-screen").classList.contains("hidden")===false){
+    if(k==="enter"){startGame();return;}
+    if(k==="t"){const stage=$("arena"),next=(stage.selectedIndex+1)%stage.options.length;stage.selectedIndex=next;return;}
+    if(["1","2","3"].includes(k)){$("difficulty").value=["easy","normal","hard"][Number(k)-1];return;}
+    if(k==="arrowleft"||k==="arrowright"||k==="arrowup"||k==="arrowdown"){
+      const delta=(k==="arrowleft"||k==="arrowup")?-1:1;
+      if(selectionSide==="player"&&(k==="arrowleft"||k==="arrowright"))selected=(selected+delta+roster.length)%roster.length;
+      if(selectionSide==="cpu"&&(k==="arrowup"||k==="arrowdown"))cpuSelected=(cpuSelected+delta+roster.length)%roster.length;
+      $("player-pick-name").textContent=roster[selected].name;$("cpu-pick-name").textContent=roster[cpuSelected].name;renderRoster();return;
+    }
+  }
   if(e.repeat)return;
   if((k==="j"||k==="k")&&!localMode)recordCombo(k);
   keys.add(k);
