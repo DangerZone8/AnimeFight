@@ -93,7 +93,7 @@ function update(dt){
   if(!running||paused||roundOver)return;
   elapsed+=dt;timer=Math.max(0,60-elapsed);
   playerInput();
-  cpu.facing=player.x<cpu.x?-1:1;player.facing=player.x<cpu.x?-1:1;
+  cpu.facing=player.x<cpu.x?-1:1;player.facing=player.x<cpu.x?1:-1;
   if(Math.random()<Math.min(1,dt*2.2)){brain.observe(playerLastAction);playerLastAction="approach";}
   if(Math.random()<dt*3)cpuThink();
   for(const f of [player,cpu]){
