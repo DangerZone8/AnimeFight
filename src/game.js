@@ -63,8 +63,7 @@ function hit(attacker, defender, kind){
   attacker.comboAge=0;
   const damage=comboDamage(profile.damage*attacker.data.power*(attacker.isCPU?brain.damageScale:1),attacker.combo);
   defender.health=Math.max(0,defender.health-damage);
-  defender.energy=Math.min(100,defender.energy+12);
-  attacker.energy=Math.min(100,attacker.energy+(move==="super"||move==="bossSuper"?0:8));
+  attacker.energy=addStamina(attacker.energy,profile.staminaGain);
   defender.action="hit";defender.actionTime=.2;defender.vx=attacker.facing*profile.push;defender.hitFlash=.15;
   $("cpu-status").textContent=(attacker.isCPU?"CPU":"PLAYER")+" COMBO ×"+attacker.combo;
   return true;
