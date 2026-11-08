@@ -11,6 +11,7 @@ test("every roster fighter has original intro, super and win dialogue", () => {
     assert.ok(getBanter(id,"introJa").length > 0,id+" Japanese intro");
     assert.ok(getBanter(id,"superJa").length > 0,id+" Japanese super");
     assert.ok(getBanter(id,"meme").length > 0,id+" English meme line");
+    assert.ok(getBanter(id,"superMeme").length > 0,id+" super punchline");
   }
 });
 
