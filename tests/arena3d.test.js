@@ -32,3 +32,11 @@ test("3D renderer is connected to the live combat state", () => {
   assert.ok(game.includes("view.setFighters(hero.model,rival.model)"));
   assert.ok(game.includes("arena3d.render({player,cpu,elapsed})"));
 });
+
+test("anime fighters have expressive facial rigs and layered costume details", () => {
+  for (const token of ["const eyes=[],brows=[]","const mouth=mesh","d.brows[0].rotation.z","d.mouth.scale.y","pauldron","split coat panels"]) assert.ok(renderer.includes(token), `missing visual detail: ${token}`);
+});
+
+test("arenas have stage-specific landmarks and enhanced floor detailing", () => {
+  for (const token of ["centerSigil","if(type===\"temple\")","else if(type===\"dojo\")","billboard","banner","rune"]) assert.ok(renderer.includes(token), `missing arena feature: ${token}`);
+});
