@@ -1,4 +1,5 @@
 import { AdaptiveCPU } from "./ai.js";
+import { SpriteAtlasRenderer, FIGHTER_ATLAS_PATHS } from "./sprite-animation.js";
 
 const roster = [
   {id:"ember",model:"ember",name:"EMBER RONIN",series:"EMBER DISTRICT",style:"Solar-edge duelist",color:"#e88b42",glow:"#ff9c55",speed:4.2,power:1.12,move:"SUNBREAK"},
@@ -18,6 +19,8 @@ let arena3d = null;
 const arena3dReady = Promise.resolve(null);
 let hitStop=0,cameraShake=0;
 const combatFX=[];
+const spriteRenderer=new SpriteAtlasRenderer(FIGHTER_ATLAS_PATHS);
+spriteRenderer.load().then(result=>{if(result.loaded)console.info("Loaded fighter sprite atlases:",result.loaded);if(result.failed)console.warn("Fighter sprite atlases not available yet:",result.failed);});
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const easeOut=t=>1-Math.pow(1-clamp(t),3);
 const easeInOut=t=>{t=clamp(t);return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;};
@@ -289,7 +292,7 @@ function drawArena(){
   g.fillStyle="#ffffff10";g.font="700 17px Rajdhani";g.textAlign="center";g.fillText(arena==="temple"?"SKY TEMPLE":arena==="dojo"?"CRIMSON DOJO":"NEO TOKYO",550,48);
 }
 function draw(){
-  ctx.save();if(cameraShake>0)ctx.translate((Math.random()-.5)*cameraShake,(Math.random()-.5)*cameraShake);ctx.clearRect(0,0,1100,520);drawArena();drawFighter(player);drawFighter(cpu);for(const fx of combatFX){ctx.save();ctx.globalAlpha=clamp(fx.life/fx.max);ctx.strokeStyle=fx.color;ctx.fillStyle=fx.color;ctx.shadowColor=fx.color;ctx.shadowBlur=12;if(fx.ring){ctx.lineWidth=3;ctx.beginPath();ctx.arc(fx.x,fx.y,fx.size*(1-fx.life/fx.max)+4,0,Math.PI*2);ctx.stroke();}else{ctx.beginPath();ctx.arc(fx.x,fx.y,fx.size*clamp(fx.life/fx.max),0,Math.PI*2);ctx.fill();}ctx.restore();}ctx.restore();
+  ctx.save();if(cameraShake>0)ctx.translate((Math.random()-.5)*cameraShake,(Math.random()-.5)*cameraShake);ctx.clearRect(0,0,1100,520);drawArena();if(!spriteRenderer.draw(ctx,player,elapsed))drawFighter(player);if(!spriteRenderer.draw(ctx,cpu,elapsed))drawFighter(cpu);for(const fx of combatFX){ctx.save();ctx.globalAlpha=clamp(fx.life/fx.max);ctx.strokeStyle=fx.color;ctx.fillStyle=fx.color;ctx.shadowColor=fx.color;ctx.shadowBlur=12;if(fx.ring){ctx.lineWidth=3;ctx.beginPath();ctx.arc(fx.x,fx.y,fx.size*(1-fx.life/fx.max)+4,0,Math.PI*2);ctx.stroke();}else{ctx.beginPath();ctx.arc(fx.x,fx.y,fx.size*clamp(fx.life/fx.max),0,Math.PI*2);ctx.fill();}ctx.restore();}ctx.restore();
   if(player.action==="special"&&player.actionTime>0){ctx.fillStyle=player.data.glow;ctx.globalAlpha=.7;ctx.beginPath();ctx.ellipse(player.x+player.facing*90,315,85,17,0,0,Math.PI*2);ctx.fill();ctx.globalAlpha=1;}
 }
 function loop(now){const dt=Math.min(.04,(now-last)/1000||0);last=now;update(dt);draw();raf=requestAnimationFrame(loop);}
