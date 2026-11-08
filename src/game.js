@@ -34,6 +34,7 @@ function drawPortrait(canvasEl, fighter) {
 }
 function renderRoster(){
   $("roster").innerHTML="";
+  $("select-player").classList.toggle("active",selectionSide==="player");$("select-cpu").classList.toggle("active",selectionSide==="cpu");
   roster.forEach((f,i)=>{
     const b=document.createElement("button"); b.className="fighter-card"+(i===selected?" selected":"")+(i===cpuSelected?" cpu-selected":""); b.type="button"; b.setAttribute("aria-pressed",String(i===selected||i===cpuSelected));
     const art=document.createElement("div"); art.className="fighter-art"; art.style.setProperty("--glow",f.glow); const pc=document.createElement("canvas"); art.append(pc); drawPortrait(pc,f);
@@ -42,7 +43,7 @@ function renderRoster(){
     b.append(art,name,series,pick); b.addEventListener("click",()=>{if(selectionSide==="player"){selected=i;selectionSide="cpu";$("selection-step").textContent="02 / SELECT YOUR CPU RIVAL";}else{cpuSelected=i;}$("player-pick-name").textContent=roster[selected].name;$("cpu-pick-name").textContent=roster[cpuSelected].name;renderRoster()}); $("roster").append(b);
   });
 }
-renderRoster();
+renderRoster();$("player-pick-name").textContent=roster[selected].name;$("cpu-pick-name").textContent=roster[cpuSelected].name;
 
 class Fighter {
   constructor(x, data, facing, isCPU=false){this.x=x;this.y=0;this.vx=0;this.vy=0;this.data=data;this.facing=facing;this.health=100;this.energy=0;this.grounded=true;this.action="idle";this.actionTime=0;this.cooldown=0;this.guard=false;this.isCPU=isCPU;this.hitFlash=0;this.combo=0;}
@@ -52,6 +53,7 @@ function startGame(){
   arena=$("arena").value; const hero=roster[selected], rival=roster[cpuSelected];
   localMode=$("match-mode").value==="local";
   player=new Fighter(290,hero,1); cpu=new Fighter(810,rival,-1,!localMode);
+  document.querySelector(".enemy-hud .hud-name small").textContent=localMode?"PLAYER 02":"CPU RIVAL";
   $("result-panel").classList.add("hidden");$("pause-overlay").classList.add("hidden");
   $("cpu-status").textContent=localMode?"LOCAL PLAYER 2":"CPU ANALYZING";
   $("player-name").textContent=hero.name; $("cpu-name").textContent=rival.name;
@@ -142,7 +144,8 @@ function finishRound(){
   const text=winner===2?"DRAW":winner===0?"ROUND WON":"RIVAL WINS ROUND";
   $("round-banner").textContent=text+"  ·  "+roundWins[0]+" — "+roundWins[1];$("round-banner").classList.remove("hidden");
   $("round-score").textContent=roundWins[0]+" — "+roundWins[1];$("round-number").textContent=String(roundWins[0]+roundWins[1]+1).padStart(2,"0");
-  if(roundWins[0]<2&&roundWins[1]<2){setTimeout(()=>{if(!running)return;player.health=100;cpu.health=100;player.energy=0;cpu.energy=0;player.x=290;cpu.x=810;elapsed=0;timer=60;roundOver=false;$("round-banner").classList.add("hidden");},1800);}
+  const matchFinished=Math.max(...roundWins)>=2&&roundWins[0]!==roundWins[1];
+  if(!matchFinished){setTimeout(()=>{if(!running)return;player.health=100;cpu.health=100;player.energy=0;cpu.energy=0;player.x=290;cpu.x=810;elapsed=0;timer=60;roundOver=false;$("round-banner").classList.add("hidden");},1800);}
   else{
     const won=roundWins[0]>roundWins[1];$("round-banner").textContent=(won?"VICTORY":"DEFEAT")+"  ·  "+roundWins[0]+" — "+roundWins[1];
     $("result-title").textContent=won?"YOU WIN!":"MATCH OVER";$("result-copy").textContent=won?"The arena belongs to you.":"Run it back and change the outcome.";
