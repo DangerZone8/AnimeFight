@@ -19,22 +19,31 @@ const $ = (id) => document.getElementById(id);
 const canvas = $("game-canvas"), ctx = canvas.getContext("2d");
 let selected = 0, player, cpu, brain, keys = new Set(), last = 0, elapsed = 0, timer = 60, running = false, paused = false, raf = 0, arena = "neon", roundOver = false, roundWins = [0,0], playerLastAction = "approach", statusTick = 0;
 function playBanter(fighter, moment) {
-  const line = getBanter(fighter?.data?.id, moment);
+  const id = fighter?.data?.id;
+  const line = getBanter(id, moment);
+  const japaneseLine = getBanter(id, moment + "Ja");
+  const memeLine = moment === "intro" ? getBanter(id, "meme") : "";
   const bubble = $("dialogue-bubble");
   if (!line || !bubble) return;
-  bubble.textContent = fighter.data.name + ": " + line;
+  bubble.textContent = [fighter.data.name + ": " + line, japaneseLine, memeLine].filter(Boolean).join("  |  ");
   bubble.classList.remove("hidden");
   clearTimeout(playBanter.hideTimer);
-  playBanter.hideTimer = setTimeout(() => bubble.classList.add("hidden"), 4200);
+  playBanter.hideTimer = setTimeout(() => bubble.classList.add("hidden"), 6200);
   if ("speechSynthesis" in window && "SpeechSynthesisUtterance" in window) {
     window.speechSynthesis.cancel();
-    const utterance = new SpeechSynthesisUtterance(line);
-    const voice = getBanter(fighter.data.id, "voice") || {};
-    utterance.pitch = voice.pitch ?? 1; utterance.rate = voice.rate ?? 1; utterance.volume = 0.9;
-    window.speechSynthesis.speak(utterance);
+    const voice = getBanter(id, "voice") || {};
+    const speak = (text, lang) => {
+      const utterance = new SpeechSynthesisUtterance(text);
+      utterance.lang = lang;
+      utterance.pitch = voice.pitch ?? 1;
+      utterance.rate = voice.rate ?? 1;
+      utterance.volume = 0.9;
+      window.speechSynthesis.speak(utterance);
+    };
+    speak(line, "en-US");
+    if (japaneseLine) speak(japaneseLine, "ja-JP");
   }
 }
-
 function drawPortrait(canvasEl, fighter) {
   const c=canvasEl.getContext("2d"), w=canvasEl.width=160,h=canvasEl.height=130;
   c.clearRect(0,0,w,h); c.fillStyle=fighter.glow+"30"; c.beginPath(); c.arc(80,73,56,0,Math.PI*2); c.fill();
