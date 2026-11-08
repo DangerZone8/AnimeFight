@@ -219,6 +219,11 @@ document.querySelectorAll("[data-key]").forEach(b=>{
 $("start-button").addEventListener("click",startGame);$("back-button").addEventListener("click",backToMenu);
 function togglePause(){paused=!paused;$("pause-overlay").classList.toggle("hidden",!paused);$("pause-button").textContent=paused?"▶ RESUME":"Ⅱ PAUSE";}
 $("pause-button").addEventListener("click",togglePause);
+function updateOrientationHint(){const small=matchMedia("(max-width: 850px)").matches,portrait=matchMedia("(orientation: portrait)").matches;$("rotate-overlay").classList.toggle("hidden",!(small&&portrait));}
+window.addEventListener("resize",updateOrientationHint);window.addEventListener("orientationchange",updateOrientationHint);updateOrientationHint();
+$("continue-portrait").addEventListener("click",()=>$("rotate-overlay").classList.add("hidden"));
+$("fullscreen-button").addEventListener("click",async()=>{try{if(!document.fullscreenElement)await document.documentElement.requestFullscreen?.();else await document.exitFullscreen?.();}catch(error){console.warn("Fullscreen is unavailable in this browser",error);}});
+
 $("resume-button").addEventListener("click",togglePause);
 $("sound-toggle").addEventListener("click",()=>{soundEnabled=!soundEnabled;$("sound-toggle").textContent=soundEnabled?"SOUND: ON":"SOUND: OFF";});
 $("quit-button").addEventListener("click",backToMenu);
