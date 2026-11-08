@@ -45,3 +45,12 @@ test("2D animation uses articulated two-bone limbs and squash/stretch follow-thr
   assert.ok(game.includes("const flow=Math.sin(elapsed*8"));
   assert.ok(game.includes("c.lineWidth=5+strike*4"));
 });
+
+test("each anime fighter has an original character-specific super effect", () => {
+  for (const fighter of ["ember","mirage","coil","astral","tide","dusk","glyph"]) {
+    assert.ok(game.includes(`f.data.id==="${fighter}"`), `missing signature super for ${fighter}`);
+  }
+  assert.ok(game.includes("const pulse=15+Math.sin(elapsed*24)*4"));
+  assert.ok(game.includes("c.bezierCurveTo"));
+  assert.ok(game.includes("c.strokeRect"));
+});
