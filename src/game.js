@@ -223,15 +223,18 @@ function drawFighter(f){
   if(actionName==="hit"){armA=1.25+hurtProgress*.35;armB=-1.25-hurtProgress*.2;legA=-.3+hurtProgress*.18;legB=.25-hurtProgress*.12;}
   if(actionName==="run"){armA=-.9+wave*.2;armB=.8-wave*.2;legA=.65;legB=-.65;}
   if(actionName==="jump"){legA=-.7;legB=.65;armA=-1.25;armB=-.9;}
-  c.save();c.translate(x,ground+bob);c.scale(face,1);c.rotate(lean);
+  const anticipation=attacking&&phase==="startup"?wind:0;
+  const recoil=actionName==="hit"||actionName==="knockdown"?Math.sin(hurtProgress*Math.PI):0;
+  const squash=actionName==="knockdown"?.82:actionName==="hit"?.94:phase==="startup"?1-.045*anticipation:phase==="active"?1+.055*strike:phase==="recovery"?1-.025*recovery:1;
+  c.save();c.translate(x,ground+bob+(phase==="active"?-2*strike:0));c.scale(face,1);c.rotate(lean);c.scale(1,squash);
   const glow=f.data.glow, color=f.data.color, skin="#edc2a5", dark="#171a30";
   c.globalAlpha=1;c.fillStyle="#05071188";c.beginPath();c.ellipse(0,4,43,10,0,0,Math.PI*2);c.fill();
   const aura=c.createRadialGradient(0,-105,8,0,-105,82);aura.addColorStop(0,glow+"44");aura.addColorStop(1,glow+"00");c.fillStyle=aura;c.beginPath();c.arc(0,-105,82,0,Math.PI*2);c.fill();
   if(f.hitFlash>0){c.globalAlpha=.45+Math.sin(elapsed*48)*.3;}
-  // Rear leg and boot.
+  // Two-bone legs with visible knees, shin rotation and planted-foot follow-through.
   const limb=(x1,y1,x2,y2,width,col)=>{c.strokeStyle=col;c.lineWidth=width;c.lineCap="round";c.lineJoin="round";c.beginPath();c.moveTo(x1,y1);c.lineTo(x2,y2);c.stroke();};
-  const leg=(angle,offset)=>{c.save();c.translate(offset,-53);c.rotate(angle);limb(0,0,0,38,17,dark);limb(0,12,0,32,10,color);limb(0,36,15,39,13,"#0b1020");c.restore();};
-  leg(legB,-12);leg(legA,13);
+  const leg=(angle,offset,front=false)=>{c.save();c.translate(offset,-53);c.rotate(angle);limb(0,0,0,20,18,dark);limb(0,5,0,18,12,color);c.fillStyle=glow;c.beginPath();c.arc(0,20,7,0,Math.PI*2);c.fill();c.translate(0,20);const knee=front&&phase==="active"?-.42:front&&phase==="startup"?.55:.18;c.rotate(knee);limb(0,0,0,20,13,dark);limb(0,4,0,18,8,color);limb(0,20,15,22,14,"#0b1020");c.restore();};
+  leg(legB,-12,false);leg(legA,13,true);
   // Coat silhouette, sash and costume accents.
   c.fillStyle=color;c.beginPath();c.moveTo(-25,torsoY+8);c.lineTo(24,torsoY+8);c.lineTo(32,-52);c.lineTo(18,-43);c.lineTo(0,-50);c.lineTo(-19,-42);c.lineTo(-31,-53);c.closePath();c.fill();
   c.fillStyle=glow;c.globalAlpha=.85;c.beginPath();c.moveTo(-25,-82);c.lineTo(24,-82);c.lineTo(17,-72);c.lineTo(-18,-72);c.closePath();c.fill();c.globalAlpha=f.hitFlash>0?.6:1;
@@ -239,14 +242,14 @@ function drawFighter(f){
   if(["coil","glyph","meteor"].includes(f.data.id)){c.fillStyle=glow;c.globalAlpha=.85;c.beginPath();c.moveTo(-29,-108);c.lineTo(-42,-96);c.lineTo(-25,-84);c.closePath();c.fill();c.beginPath();c.moveTo(29,-108);c.lineTo(42,-96);c.lineTo(25,-84);c.closePath();c.fill();c.globalAlpha=1;}
   if(["ember","tide","dusk"].includes(f.data.id)){c.strokeStyle=glow;c.lineWidth=6;c.beginPath();c.moveTo(-20,-75);c.quadraticCurveTo(-42,-56,-57,-68);c.stroke();}
   // Articulated arms: shoulder, elbow and fist follow the attack arc.
-  const arm=(angle,side)=>{c.save();c.translate(side*19,-112);c.rotate(angle);limb(0,0,0,24,13,color);limb(0,18,0,36,8,skin);c.fillStyle=skin;c.beginPath();c.arc(0,40,9,0,Math.PI*2);c.fill();c.restore();};
+  const arm=(angle,side)=>{c.save();c.translate(side*19,-112);c.rotate(angle);limb(0,0,0,19,15,dark);limb(0,3,0,17,11,color);c.fillStyle=glow;c.beginPath();c.arc(0,19,6,0,Math.PI*2);c.fill();c.translate(0,19);const bend=actionName==="guard"?-.95:actionName==="grab"?-.12:phase==="startup"?-.82:phase==="active"?-.18:phase==="recovery"?.72:-.38;c.rotate(bend);limb(0,0,0,19,11,skin);limb(0,4,0,17,8,color);c.fillStyle=skin;c.beginPath();c.arc(0,22,9,0,Math.PI*2);c.fill();c.fillStyle=glow;c.beginPath();c.arc(0,22,4,0,Math.PI*2);c.fill();c.restore();};
   arm(armB,-1);arm(armA,1);
   // Head, spiked hair, expressive eyes.
   c.fillStyle=skin;c.beginPath();c.ellipse(0,headY+12,20,23,0,0,Math.PI*2);c.fill();
   const hair={ember:"#242037",mirage:"#344a7c",coil:"#2a1b26",astral:"#d6e0ff",tide:"#123e40",dusk:"#21182e",glyph:"#3c3020",meteor:"#f0e8d7"}[f.data.id]||dark;
   c.fillStyle=hair;c.beginPath();c.moveTo(-22,headY+2);c.lineTo(-24,headY-20);c.lineTo(-9,headY-10);c.lineTo(1,headY-31);c.lineTo(12,headY-11);c.lineTo(25,headY-21);c.lineTo(20,headY+7);c.lineTo(7,headY-2);c.lineTo(-6,headY+3);c.closePath();c.fill();
   c.strokeStyle=glow;c.lineWidth=3;c.lineCap="round";
-  if(["mirage","tide","dusk"].includes(f.data.id)){c.beginPath();c.moveTo(-17,headY-5);c.quadraticCurveTo(-37,headY+18,-30,headY+42);c.stroke();c.beginPath();c.moveTo(17,headY-4);c.quadraticCurveTo(34,headY+16,27,headY+37);c.stroke();}
+  if(["mirage","tide","dusk"].includes(f.data.id)){const flow=Math.sin(elapsed*8+(f.isCPU?1.5:0))*.08+recoil*.32;c.beginPath();c.moveTo(-17,headY-5);c.quadraticCurveTo(-37-flow*22,headY+18,-30-flow*34,headY+42);c.stroke();c.beginPath();c.moveTo(17,headY-4);c.quadraticCurveTo(34+flow*18,headY+16,27+flow*28,headY+37);c.stroke();}
   else if(["coil","meteor"].includes(f.data.id)){c.beginPath();c.moveTo(-13,headY-15);c.lineTo(-5,headY-37);c.lineTo(2,headY-15);c.lineTo(12,headY-32);c.stroke();}
   else if(["glyph","astral"].includes(f.data.id)){c.beginPath();c.moveTo(-18,headY-13);c.lineTo(-25,headY-31);c.moveTo(18,headY-13);c.lineTo(25,headY-31);c.stroke();}
   if(["ember","coil","glyph","meteor"].includes(f.data.id)){c.fillStyle=glow;c.globalAlpha=.8;c.fillRect(-18,headY-7,36,3);c.globalAlpha=1;}
@@ -254,8 +257,8 @@ function drawFighter(f){
   c.strokeStyle=dark;c.lineWidth=2.5;c.beginPath();c.moveTo(-5,headY+28);c.quadraticCurveTo(0,headY+31,6,headY+27);c.stroke();
   // Action trails and contact cues are tied to the active frames.
   if(attacking&&phase==="active"){
-    c.save();c.globalAlpha=.65;c.strokeStyle=glow;c.lineWidth=5;c.shadowColor=glow;c.shadowBlur=18;c.beginPath();
-    if(["kick","jumpKick","sweep"].includes(actionName)){c.arc(22,-62,58,-.8,.65);}else{c.arc(32,-104,48,-1.05,.75);}c.stroke();c.restore();
+    c.save();c.globalAlpha=.28+.42*strike;c.strokeStyle=glow;c.lineWidth=5+strike*4;c.shadowColor=glow;c.shadowBlur=18;c.lineCap="round";c.beginPath();
+    if(["kick","jumpKick","sweep"].includes(actionName)){c.arc(22,-62,58,-.8,.65);c.moveTo(18,-58);c.quadraticCurveTo(65,-92,104,-46);}else{c.arc(32,-104,48,-1.05,.75);c.moveTo(24,-105);c.quadraticCurveTo(72,-142,112,-105);}c.stroke();c.restore();
   }
   if(actionName==="special"){c.shadowColor=glow;c.shadowBlur=28;c.fillStyle=glow;c.globalAlpha=.85;c.beginPath();c.arc(52,-110,15+Math.sin(elapsed*24)*4,0,Math.PI*2);c.fill();}
   if(f.guard){c.strokeStyle="#78eaff";c.lineWidth=4;c.shadowColor="#78eaff";c.shadowBlur=16;c.beginPath();c.arc(0,-98,54,-1.2,1.2);c.stroke();}
