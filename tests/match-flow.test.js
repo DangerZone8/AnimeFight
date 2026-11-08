@@ -46,7 +46,7 @@ test("anime combat includes CPU defense, grab counters, super and knockdown mech
 });
 
 test("punches and kicks resolve on their active animation frames", () => {
-  assert.ok(game.includes("attacker.pendingHit={defender,kind,delay:startup[kind]??.14}"));
+  assert.ok(game.includes("attacker.pendingHit={defender,kind,delay:attacker.actionDuration*(MOVE_TIMELINES[kind]?.startup??.28)}"));
   assert.ok(game.includes("if(f.pendingHit){f.pendingHit.delay-=dt"));
   assert.ok(game.includes("resolveHit(f,pending.defender,pending.kind)"));
   for (const move of ["attack","kick","uppercut","sweep","jumpKick","special"]) assert.ok(game.includes(move+":"), `missing startup timing for ${move}`);

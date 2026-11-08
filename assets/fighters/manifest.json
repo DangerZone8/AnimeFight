@@ -1,0 +1,10 @@
+{
+  "ember": "/assets/fighters/ember.png",
+  "mirage": "/assets/fighters/mirage.png",
+  "coil": "/assets/fighters/coil.png",
+  "astral": "/assets/fighters/astral.png",
+  "tide": "/assets/fighters/tide.png",
+  "dusk": "/assets/fighters/dusk.png",
+  "glyph": "/assets/fighters/glyph.png",
+  "meteor": "/assets/fighters/meteor.png"
+}
