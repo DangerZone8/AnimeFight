@@ -1,14 +1,14 @@
 import * as THREE from "https://cdn.jsdelivr.net/npm/three@0.180.0/build/three.module.js";
 
 const PALETTES = {
-  ember: { skin:"#d9a17f", hair:"#f4a34c", cloth:"#263c58", trim:"#ffb84f", accent:"#ff613d", hairStyle:"crest", weapon:"none" },
-  mirage:{ skin:"#a96f52", hair:"#d7d4c7", cloth:"#354b7b", trim:"#92d7ff", accent:"#735cff", hairStyle:"flow", weapon:"none" },
-  coil:  { skin:"#e0b18e", hair:"#253044", cloth:"#a53c45", trim:"#f0d4a2", accent:"#ff775d", hairStyle:"spikes", weapon:"none" },
-  astral:{ skin:"#e5c3a4", hair:"#202b4b", cloth:"#20243d", trim:"#a8c9ff", accent:"#77a7ff", hairStyle:"long", weapon:"none" },
-  tide:  { skin:"#bd8b6d", hair:"#1d4d4a", cloth:"#276b68", trim:"#b7f3d6", accent:"#52dfc2", hairStyle:"bob", weapon:"none" },
+  ember: { skin:"#d9a17f", hair:"#f4a34c", cloth:"#263c58", trim:"#ffb84f", accent:"#ff613d", hairStyle:"crest" },
+  mirage:{ skin:"#a96f52", hair:"#d7d4c7", cloth:"#354b7b", trim:"#92d7ff", accent:"#735cff", hairStyle:"flow" },
+  coil:  { skin:"#e0b18e", hair:"#253044", cloth:"#a53c45", trim:"#f0d4a2", accent:"#ff775d", hairStyle:"spikes" },
+  astral:{ skin:"#e5c3a4", hair:"#202b4b", cloth:"#20243d", trim:"#a8c9ff", accent:"#77a7ff", hairStyle:"long" },
+  tide:  { skin:"#bd8b6d", hair:"#1d4d4a", cloth:"#276b68", trim:"#b7f3d6", accent:"#52dfc2", hairStyle:"bob" },
   dusk:  { skin:"#c58d77", hair:"#2a263a", cloth:"#40324d", trim:"#e2a4c9", accent:"#b66cff", hairStyle:"spikes", weapon:"greatblade" },
-  glyph: { skin:"#e4b995", hair:"#6b563c", cloth:"#826b42", trim:"#f1dc91", accent:"#e6a947", hairStyle:"tied", weapon:"none" },
-  meteor:{ skin:"#9e725c", hair:"#eee0bd", cloth:"#d7d5d0", trim:"#e9b94e", accent:"#fff0a8", hairStyle:"short", weapon:"none" }
+  glyph: { skin:"#e4b995", hair:"#6b563c", cloth:"#826b42", trim:"#f1dc91", accent:"#e6a947", hairStyle:"tied" },
+  meteor:{ skin:"#9e725c", hair:"#eee0bd", cloth:"#d7d5d0", trim:"#e9b94e", accent:"#fff0a8", hairStyle:"short" }
 };
 
 const FIGHTER_META = {
