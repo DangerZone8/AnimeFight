@@ -1,9 +1,24 @@
+export const MAX_STAMINA = 100;
+export const SUPER_STAMINA_COST = MAX_STAMINA;
+
+export function addStamina(current, amount) {
+  return Math.min(MAX_STAMINA, Math.max(0, current) + Math.max(0, amount));
+}
+
+export function canUseSuper(stamina) {
+  return stamina >= SUPER_STAMINA_COST;
+}
+
+export function spendSuper(stamina) {
+  return canUseSuper(stamina) ? stamina - SUPER_STAMINA_COST : stamina;
+}
+
 export const ATTACKS = Object.freeze({
-  punch: Object.freeze({ damage: 6, reach: 88, push: 3, cost: 0, cooldown: 0.2 }),
-  kick: Object.freeze({ damage: 11, reach: 112, push: 7, cost: 0, cooldown: 0.34 }),
-  grab: Object.freeze({ damage: 15, reach: 62, push: 10, cost: 0, cooldown: 0.55, ignoresGuard: true }),
-  super: Object.freeze({ damage: 28, reach: 270, push: 13, cost: 35, cooldown: 0.9 }),
-  bossSuper: Object.freeze({ damage: 48, reach: 310, push: 18, cost: 35, cooldown: 1.25 })
+  punch: Object.freeze({ damage: 6, reach: 88, push: 3, staminaGain: 12, cooldown: 0.2 }),
+  kick: Object.freeze({ damage: 11, reach: 112, push: 7, staminaGain: 16, cooldown: 0.34 }),
+  grab: Object.freeze({ damage: 15, reach: 62, push: 10, staminaGain: 20, cooldown: 0.55, ignoresGuard: true }),
+  super: Object.freeze({ damage: 28, reach: 270, push: 13, staminaGain: 0, cooldown: 0.9 }),
+  bossSuper: Object.freeze({ damage: 48, reach: 310, push: 18, staminaGain: 0, cooldown: 1.25 })
 });
 
 export function isInHitRange(attacker, defender, reach) {
