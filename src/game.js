@@ -97,6 +97,7 @@ function update(dt){
   if(Math.random()<Math.min(1,dt*2.2)){brain.observe(playerLastAction);playerLastAction="approach";}
   if(Math.random()<Math.min(1,dt*brain.thinkRate))cpuThink();
   for(const f of [player,cpu]){
+    f.animTime+=dt;f.comboAge+=dt;if(f.comboAge>1.15)f.combo=0;
     f.x+=f.vx;f.x=Math.max(48,Math.min(1052,f.x));f.vx*=f.action==="hit"?.88:.72;
     f.y+=f.vy;f.vy+=30*dt;if(f.y>=0){f.y=0;f.vy=0;f.grounded=true;}
     f.cooldown=Math.max(0,f.cooldown-dt);f.actionTime=Math.max(0,f.actionTime-dt);f.hitFlash=Math.max(0,f.hitFlash-dt);
