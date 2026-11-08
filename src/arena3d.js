@@ -203,7 +203,7 @@ export function createArena3D(container) {
     for(let i=effects.length-1;i>=0;i--){const e=effects[i];e.life-=1/60;e.group.scale.multiplyScalar(1.035);e.group.children.forEach(c=>{c.material.opacity=Math.max(0,e.life/e.max);});if(e.life<=0){scene.remove(e.group);e.group.traverse(o=>{o.geometry?.dispose();o.material?.dispose();});effects.splice(i,1);}}
     scene.children.forEach(o=>{if(o.userData?.floatOffset!==undefined)o.position.y=.6+(Math.sin(state.elapsed*1.2+o.userData.floatOffset)+1)*.35;});
     camera.position.x+=( (state.player.x+state.cpu.x)/2-550)/250-camera.position.x;camera.position.x*=.985;
-    camera.lookAt(0,1.42,0);renderer.render(scene,camera);
+    const cinematic=list.some(f=>f.action==="special");camera.position.z+=(cinematic?13.2:16.5-camera.position.z)*.12;camera.lookAt(0,1.42,0);renderer.render(scene,camera);
   }
   return {
     setArena, setFighters, render,
