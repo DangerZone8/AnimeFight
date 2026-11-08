@@ -24,6 +24,6 @@ test("combat retains stages, controls, combos and active-frame hit resolution", 
   for (const stage of ['value="neon"','value="temple"','value="dojo"']) assert.ok(html.includes(stage));
   for (const key of ['"arrowup"','"arrowdown"','"j"','"k"','"g"','"l"']) assert.ok(game.includes(key));
   for (const combo of ['"triple"','"launcher"','"finisher"','"double-heavy"','"double"','"cross"']) assert.ok(game.includes(combo));
-  assert.ok(game.includes("attacker.pendingHit={defender,kind,delay:startup[kind]??.14}"));
+  assert.ok(game.includes("attacker.pendingHit={defender,kind,delay:attacker.actionDuration*(MOVE_TIMELINES[kind]?.startup??.28)}"));
   assert.ok(game.includes("resolveHit(f,pending.defender,pending.kind)"));
 });
