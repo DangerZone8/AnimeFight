@@ -1,5 +1,6 @@
 import { AdaptiveCPU } from "./ai.js";
-import { ATTACKS, isInHitRange, comboDamage, nextCombo, addStamina, canUseSuper, spendSuper } from "./combat.js";\nimport { getBanter } from "./banter.js";
+import { ATTACKS, isInHitRange, comboDamage, nextCombo, addStamina, canUseSuper, spendSuper } from "./combat.js";
+import { getBanter } from "./banter.js";
 
 const roster = [
   {id:"son",name:"SON GOKU",series:"DRAGON BALL",style:"Saiyan striker",color:"#ff9c32",glow:"#ff6b25",speed:4.2,power:1.12,move:"KAMEHAMEHA"},
@@ -9,12 +10,30 @@ const roster = [
   {id:"blade",name:"TANJIRO",series:"DEMON SLAYER",style:"Breathing swordsman",color:"#37b78b",glow:"#52e8cb",speed:4.1,power:1.1,move:"WATER WHEEL"},
   {id:"reaper",name:"ICHIGO",series:"BLEACH",style:"Soul reaper",color:"#ff7b5e",glow:"#ff3f4f",speed:4.4,power:1.13,move:"GETSUGA"},
   {id:"homunculus",name:"EDWARD",series:"FULLMETAL ALCHEMIST",style:"Alchemist",color:"#dfc05e",glow:"#f3a849",speed:4,power:1.02,move:"ALCHEMY"},
-  {id:"hero",name:"SAITAMA",series:"ONE PUNCH MAN",style:"Overwhelming hero",color:"#f2cf45",glow:"#ffef80",speed:3.8,power:1.22,move:"SERIOUS STRIKE"}
+  {id:"hero",name:"SAITAMA",series:"ONE PUNCH MAN",style:"Overwhelming hero",color:"#f2cf45",glow:"#ffef80",speed:3.8,power:1.22,move:"SERIOUS STRIKE"},
+  {id:"yatra",name:"YATRA BOY",series:"MEME DIMENSION · PARODY",style:"Potato-to-gold alchemist",color:"#d9a45b",glow:"#ffd16b",speed:4.2,power:1.04,move:"ALOO SE SONA"},
+  {id:"deedee",name:"DEEDEE",series:"MEME DIMENSION · PARODY",style:"Chaos spellcaster",color:"#a879ed",glow:"#c6a0ff",speed:4.5,power:1.02,move:"JADU HOBE"}
 ];
 
 const $ = (id) => document.getElementById(id);
 const canvas = $("game-canvas"), ctx = canvas.getContext("2d");
-let selected = 0, player, cpu, brain, keys = new Set(), last = 0, elapsed = 0, timer = 60, running = false, paused = false, raf = 0, arena = "neon", roundOver = false, roundWins = [0,0], playerLastAction = "approach", statusTick = 0;\nfunction playBanter(fighter, moment) {\n  const line = getBanter(fighter?.data?.id, moment);\n  const bubble = $("dialogue-bubble");\n  if (!line || !bubble) return;\n  bubble.textContent = fighter.data.name + ": " + line;\n  bubble.classList.remove("hidden");\n  clearTimeout(playBanter.hideTimer);\n  playBanter.hideTimer = setTimeout(() => bubble.classList.add("hidden"), 4200);\n  if ("speechSynthesis" in window && "SpeechSynthesisUtterance" in window) {\n    window.speechSynthesis.cancel();\n    const utterance = new SpeechSynthesisUtterance(line);\n    const voice = getBanter(fighter.data.id, "voice") || {};\n    utterance.pitch = voice.pitch ?? 1; utterance.rate = voice.rate ?? 1; utterance.volume = 0.9;\n    window.speechSynthesis.speak(utterance);\n  }\n}
+let selected = 0, player, cpu, brain, keys = new Set(), last = 0, elapsed = 0, timer = 60, running = false, paused = false, raf = 0, arena = "neon", roundOver = false, roundWins = [0,0], playerLastAction = "approach", statusTick = 0;
+function playBanter(fighter, moment) {
+  const line = getBanter(fighter?.data?.id, moment);
+  const bubble = $("dialogue-bubble");
+  if (!line || !bubble) return;
+  bubble.textContent = fighter.data.name + ": " + line;
+  bubble.classList.remove("hidden");
+  clearTimeout(playBanter.hideTimer);
+  playBanter.hideTimer = setTimeout(() => bubble.classList.add("hidden"), 4200);
+  if ("speechSynthesis" in window && "SpeechSynthesisUtterance" in window) {
+    window.speechSynthesis.cancel();
+    const utterance = new SpeechSynthesisUtterance(line);
+    const voice = getBanter(fighter.data.id, "voice") || {};
+    utterance.pitch = voice.pitch ?? 1; utterance.rate = voice.rate ?? 1; utterance.volume = 0.9;
+    window.speechSynthesis.speak(utterance);
+  }
+}
 
 function drawPortrait(canvasEl, fighter) {
   const c=canvasEl.getContext("2d"), w=canvasEl.width=160,h=canvasEl.height=130;
@@ -64,7 +83,9 @@ function hit(attacker, defender, kind){
   const damage=comboDamage(profile.damage*attacker.data.power*(attacker.isCPU?brain.damageScale:1),attacker.combo);
   defender.health=Math.max(0,defender.health-damage);
   attacker.energy=addStamina(attacker.energy,profile.staminaGain);
-  if(attacker.data.id==="yatra" && (move==="super"||move==="bossSuper")) defender.potatoTime=0.9;\n  if(attacker.data.id==="deedee" && (move==="super"||move==="bossSuper")) defender.hexTime=0.9;\n  defender.action="hit";defender.actionTime=.2;defender.vx=attacker.facing*profile.push;defender.hitFlash=.15;
+  if(attacker.data.id==="yatra" && (move==="super"||move==="bossSuper")) defender.potatoTime=0.9;
+  if(attacker.data.id==="deedee" && (move==="super"||move==="bossSuper")) defender.hexTime=0.9;
+  defender.action="hit";defender.actionTime=.2;defender.vx=attacker.facing*profile.push;defender.hitFlash=.15;
   $("cpu-status").textContent=(attacker.isCPU?"CPU":"PLAYER")+" COMBO ×"+attacker.combo;
   return true;
 }
@@ -119,7 +140,8 @@ function update(dt){
 function finishRound(){
   roundOver=true;const winner=player.health>cpu.health?0:cpu.health>player.health?1:2;
   if(winner!==2)roundWins[winner]++;
-  const text=winner===2?"DRAW":winner===0?"ROUND WON":"CPU WINS ROUND";\n  if(winner!==2) playBanter(winner===0?player:cpu,"win");
+  const text=winner===2?"DRAW":winner===0?"ROUND WON":"CPU WINS ROUND";
+  if(winner!==2) playBanter(winner===0?player:cpu,"win");
   $("round-banner").textContent=text+"  ·  "+roundWins[0]+" — "+roundWins[1];$("round-banner").classList.remove("hidden");
   if(roundWins[0]<2&&roundWins[1]<2){setTimeout(()=>{if(!running)return;player.health=100;cpu.health=100;player.energy=0;cpu.energy=0;player.x=290;cpu.x=810;elapsed=0;timer=60;roundOver=false;$("round-banner").classList.add("hidden");},1800);}
   else{$("round-banner").textContent=(roundWins[0]>roundWins[1]?"VICTORY":"DEFEAT")+"  ·  "+roundWins[0]+" — "+roundWins[1];}
@@ -129,7 +151,9 @@ function drawFighter(f){
   const moving=Math.abs(f.vx)>0.8, attacking=["punch","kick","grab","super","bossSuper"].includes(f.action);
   const phase=f.animTime, bob=f.grounded?(moving?Math.abs(Math.sin(phase*12))*3:Math.sin(phase*2)*1.5):0;
   const lean=attacking?Math.min(13,f.actionTime*35):moving?3:0;
-  c.save();c.translate(x,y-bob);c.scale(face,1);\n  if(f.potatoTime>0){c.shadowColor="#d9a45b";c.shadowBlur=25;c.fillStyle="#b9793f";c.beginPath();c.ellipse(0,-83,31,23,-.25,0,Math.PI*2);c.fill();c.shadowBlur=0;c.fillStyle="#4a2b1a";for(const [px,py] of [[-12,-89],[9,-79],[2,-94]]){c.beginPath();c.arc(px,py,2.2,0,Math.PI*2);c.fill();}c.fillStyle="#ffe28a";c.font="700 11px Rajdhani";c.textAlign="center";c.fillText("POTATO MODE",0,-119);c.restore();return;}\n  if(f.hexTime>0){c.strokeStyle="#c6a0ff";c.lineWidth=5;c.shadowColor="#a879ed";c.shadowBlur=24;c.beginPath();c.arc(0,-87,53+Math.sin(phase*18)*5,0,Math.PI*2);c.stroke();c.shadowBlur=0;}
+  c.save();c.translate(x,y-bob);c.scale(face,1);
+  if(f.potatoTime>0){c.shadowColor="#d9a45b";c.shadowBlur=25;c.fillStyle="#b9793f";c.beginPath();c.ellipse(0,-83,31,23,-.25,0,Math.PI*2);c.fill();c.shadowBlur=0;c.fillStyle="#4a2b1a";for(const [px,py] of [[-12,-89],[9,-79],[2,-94]]){c.beginPath();c.arc(px,py,2.2,0,Math.PI*2);c.fill();}c.fillStyle="#ffe28a";c.font="700 11px Rajdhani";c.textAlign="center";c.fillText("POTATO MODE",0,-119);c.restore();return;}
+  if(f.hexTime>0){c.strokeStyle="#c6a0ff";c.lineWidth=5;c.shadowColor="#a879ed";c.shadowBlur=24;c.beginPath();c.arc(0,-87,53+Math.sin(phase*18)*5,0,Math.PI*2);c.stroke();c.shadowBlur=0;}
   if(f.hitFlash>0)c.globalAlpha=.55+Math.sin(elapsed*40)*.3;
   const col=f.data.color, skin="#efc5a5", dark="#17172a";
   c.fillStyle="#05071180";c.beginPath();c.ellipse(0,5,37,9,0,0,Math.PI*2);c.fill();
