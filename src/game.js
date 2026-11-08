@@ -1,6 +1,8 @@
 import { AdaptiveCPU } from "./ai.js";
 
-const roster = [\n  {id:"modi",model:"modi",name:"NARENDRA MODI",series:"SANSAD SHOWDOWN",style:"Incumbent orator",color:"#e0a04a",glow:"#ff8b38",speed:4,power:1.08,move:"MASTERSTROKE"},\n  {id:"rahul",model:"rahul",name:"RAHUL GANDHI",series:"SANSAD SHOWDOWN",style:"Campaign challenger",color:"#e8e5dc",glow:"#79b8df",speed:4.2,power:1.04,move:"JAN SAMVAD"},
+const roster = [
+  {id:"modi",model:"modi",name:"NARENDRA MODI",series:"SANSAD SHOWDOWN",style:"Incumbent orator",color:"#e0a04a",glow:"#ff8b38",speed:4,power:1.08,move:"MASTERSTROKE"},
+  {id:"rahul",model:"rahul",name:"RAHUL GANDHI",series:"SANSAD SHOWDOWN",style:"Campaign challenger",color:"#e8e5dc",glow:"#79b8df",speed:4.2,power:1.04,move:"JAN SAMVAD"},
   {id:"ember",model:"ember",name:"EMBER RONIN",series:"EMBER DISTRICT",style:"Solar-edge duelist",color:"#e88b42",glow:"#ff9c55",speed:4.2,power:1.12,move:"SUNBREAK"},
   {id:"mirage",model:"mirage",name:"MIRAGE",series:"GLASS FRONTIER",style:"Illusion tactician",color:"#7b9bd9",glow:"#92d7ff",speed:4.6,power:1,move:"AFTERIMAGE"},
   {id:"coil",model:"coil",name:"IRON COIL",series:"METRO CIRCUIT",style:"Pressure brawler",color:"#b84e55",glow:"#ff775d",speed:4.3,power:1.06,move:"PILE DRIVER"},
