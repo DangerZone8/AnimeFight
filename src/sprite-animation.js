@@ -41,6 +41,14 @@ export class SpriteAtlasRenderer {
     return { loaded: this.images.size, failed: this.failures.size };
   }
 
+  drawPortrait(ctx, id, x = 0, y = 0, width = 160, height = 130) {
+    const image = this.images.get(id);
+    if (!image || !image.complete || !image.naturalWidth) return false;
+    ctx.save(); ctx.shadowColor = "#8bdcff"; ctx.shadowBlur = 12;
+    ctx.drawImage(image, 0, 0, FRAME_W, FRAME_H, x, y, width, height);
+    ctx.restore(); return true;
+  }
+
   draw(ctx, fighter, elapsed) {
     const image = this.images.get(fighter.data.id);
     if (!image || !image.complete || !image.naturalWidth) return false;

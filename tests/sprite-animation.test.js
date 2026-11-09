@@ -39,3 +39,16 @@ test("sprite renderer crops a valid frame and mirrors the opponent", () => {
   assert.equal(draw[4], 192);
   assert.equal(draw[5], 192);
 });
+
+
+test("sprite renderer exposes matching atlas artwork for roster portraits", () => {
+  class FakeImage { constructor(){this.complete=true;this.naturalWidth=1536;this.naturalHeight=1152;} }
+  const renderer = new SpriteAtlasRenderer({ ember:"atlas.svg" }, FakeImage);
+  renderer.images.set("ember", new FakeImage());
+  const calls=[];
+  const ctx={save(){},restore(){},drawImage(...args){calls.push(args);}};
+  assert.equal(renderer.drawPortrait(ctx,"ember",12,0,136,130),true);
+  assert.equal(calls.length,1);
+  assert.deepEqual(calls[0].slice(1,9),[0,0,192,192,12,0,136,130]);
+  assert.equal(renderer.drawPortrait(ctx,"missing"),false);
+});

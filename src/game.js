@@ -20,7 +20,7 @@ const arena3dReady = Promise.resolve(null);
 let hitStop=0,cameraShake=0;
 const combatFX=[];
 const spriteRenderer=new SpriteAtlasRenderer(FIGHTER_ATLAS_PATHS);
-spriteRenderer.load().then(result=>{if(result.loaded)console.info("Loaded fighter sprite atlases:",result.loaded);if(result.failed)console.warn("Fighter sprite atlases not available yet:",result.failed);});
+spriteRenderer.load().then(result=>{if(result.loaded)console.info("Loaded fighter sprite atlases:",result.loaded);if(result.failed)console.warn("Fighter sprite atlases not available yet:",result.failed);renderRoster();});
 const clamp=(v,a=0,b=1)=>Math.max(a,Math.min(b,v));
 const easeOut=t=>1-Math.pow(1-clamp(t),3);
 const easeInOut=t=>{t=clamp(t);return t<.5?4*t*t*t:1-Math.pow(-2*t+2,3)/2;};
@@ -52,12 +52,14 @@ function spawnImpact(x,y,color,power=1){
  combatFX.push({x,y,ring:1,life:.22,max:.22,size:14+power*12,color});
 }
 function drawPortrait(canvasEl, fighter) {
-  const c=canvasEl.getContext("2d"), w=canvasEl.width=160,h=canvasEl.height=130;
-  c.clearRect(0,0,w,h); c.fillStyle=fighter.glow+"30"; c.beginPath(); c.arc(80,73,56,0,Math.PI*2); c.fill();
-  c.fillStyle=fighter.color; c.beginPath(); c.moveTo(80,20); c.lineTo(112,40); c.lineTo(104,82); c.lineTo(95,104); c.lineTo(65,104); c.lineTo(55,82); c.lineTo(48,40); c.closePath(); c.fill();
-  c.fillStyle="#17182c"; c.beginPath(); c.moveTo(47,43); c.lineTo(55,13); c.lineTo(75,30); c.lineTo(87,7); c.lineTo(101,30); c.lineTo(116,18); c.lineTo(111,53); c.lineTo(99,39); c.lineTo(82,47); c.lineTo(63,39); c.closePath(); c.fill();
-  c.fillStyle="#fff"; c.fillRect(62,52,13,5); c.fillRect(86,52,13,5); c.fillStyle="#25233c"; c.fillRect(68,53,5,4); c.fillRect(90,53,5,4);
-  c.strokeStyle="#15172b"; c.lineWidth=4; c.beginPath(); c.moveTo(71,76); c.quadraticCurveTo(81,82,91,75); c.stroke();
+  const c=canvasEl.getContext("2d"), w=canvasEl.width=160,h=130;
+  c.clearRect(0,0,w,h);
+  const glow=c.createRadialGradient(80,78,8,80,78,72);
+  glow.addColorStop(0,fighter.glow+"88");glow.addColorStop(1,"#11162b00");
+  c.fillStyle=glow;c.fillRect(0,0,w,h);
+  if(!spriteRenderer.drawPortrait(c,fighter.id,12,0,136,130)){
+    c.fillStyle=fighter.color;c.beginPath();c.ellipse(80,76,35,48,0,0,Math.PI*2);c.fill();
+  }
 }
 function renderRoster(){
   $("roster").innerHTML="";
