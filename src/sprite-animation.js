@@ -4,15 +4,15 @@ const COLUMNS = 8;
 
 export const FIGHTER_ANIMATIONS = Object.freeze({
   idle: { row: 0, frames: 8, fps: 9, loop: true },
-  attack: { row: 1, frames: 6, fps: 16, loop: false },
+  attack: { row: 1, frames: 8, fps: 16, loop: false },
   heavy: { row: 1, frames: 8, fps: 18, loop: false },
   kick: { row: 2, frames: 8, fps: 16, loop: false },
   jump: { row: 3, frames: 8, fps: 12, loop: false },
-  jumpPunch: { row: 1, frames: 6, fps: 16, loop: false },
+  jumpPunch: { row: 1, frames: 8, fps: 16, loop: false },
   jumpKick: { row: 2, frames: 8, fps: 16, loop: false },
-  hit: { row: 4, frames: 5, fps: 14, loop: false },
+  hit: { row: 4, frames: 8, fps: 14, loop: false },
   knockdown: { row: 4, frames: 8, fps: 12, loop: false },
-  guard: { row: 5, frames: 4, fps: 8, loop: true }
+  guard: { row: 5, frames: 8, fps: 8, loop: true }
 });
 
 const ACTION_ALIAS = Object.freeze({
