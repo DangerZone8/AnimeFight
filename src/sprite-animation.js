@@ -19,7 +19,7 @@ const ACTION_ALIAS = Object.freeze({
   combo: "attack", triple: "heavy", double: "attack", cross: "attack",
   launcher: "heavy", finisher: "heavy", "double-heavy": "heavy",
   uppercut: "heavy", sweep: "kick", grab: "attack", special: "heavy",
-  run: "idle"
+  run: "idle", block: "guard", defend: "guard", blocking: "guard"
 });
 
 export class SpriteAtlasRenderer {
