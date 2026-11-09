@@ -34,7 +34,7 @@ test("sprite renderer crops a valid frame and mirrors the opponent", () => {
   assert.equal(renderer.draw(ctx, fighter, 0), true);
   assert.ok(calls.some(call=>call[0]==="scale"&&call[1]===-1));
   const draw = calls.find(call=>call[0]==="drawImage");
-  assert.equal(draw[2], 576);
+  assert.equal(draw[2], 768);
   assert.equal(draw[3], 192);
   assert.equal(draw[4], 192);
   assert.equal(draw[5], 192);
