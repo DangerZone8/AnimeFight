@@ -13,7 +13,10 @@ execFileSync(process.execPath, ["--check", "src/game.js"], { stdio: "inherit" })
 execFileSync(process.execPath, ["--check", "src/ai.js"], { stdio: "inherit" });
 
 
-// Vercel's static output directory must exist after the build command.
+// Generate original 8-fighter sprite atlases before copying static assets.
+execFileSync(process.execPath, ["scripts/generate-fighter-sheets.js"], { stdio: "inherit" });
+
+// Vercel static output directory must exist after the build command.
 // Copy the site with its relative src/ paths intact so browser module imports work.
 await rm("public", { recursive: true, force: true });
 await mkdir("public", { recursive: true });
