@@ -70,8 +70,8 @@ export class SpriteAtlasRenderer {
 
 export const FIGHTER_ATLAS_FRAME = Object.freeze({ width: FRAME_W, height: FRAME_H, columns: COLUMNS });
 export const FIGHTER_ATLAS_PATHS = Object.freeze({
-  ember: "/assets/fighters/ember.png", mirage: "/assets/fighters/mirage.png",
-  coil: "/assets/fighters/coil.png", astral: "/assets/fighters/astral.png",
-  tide: "/assets/fighters/tide.png", dusk: "/assets/fighters/dusk.png",
-  glyph: "/assets/fighters/glyph.png", meteor: "/assets/fighters/meteor.png"
+  ember: "/assets/fighters/ember.svg", mirage: "/assets/fighters/mirage.svg",
+  coil: "/assets/fighters/coil.svg", astral: "/assets/fighters/astral.svg",
+  tide: "/assets/fighters/tide.svg", dusk: "/assets/fighters/dusk.svg",
+  glyph: "/assets/fighters/glyph.svg", meteor: "/assets/fighters/meteor.svg"
 });
