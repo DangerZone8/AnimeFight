@@ -13,7 +13,7 @@ test("sprite atlas contract defines distinct timed combat animation rows", () =>
   assert.equal(FIGHTER_ANIMATIONS.attack.loop, false);
   assert.equal(Object.keys(FIGHTER_ATLAS_PATHS).length, 8);
   for (const [id, path] of Object.entries(FIGHTER_ATLAS_PATHS)) {
-    assert.match(path, new RegExp("/assets/fighters/" + id + "\\\\.svg$"));
+    assert.equal(path, "/assets/fighters/" + id + ".svg");
   }
 });
 
