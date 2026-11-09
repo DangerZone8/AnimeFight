@@ -1,6 +1,6 @@
 import test from "node:test";
 import assert from "node:assert/strict";
-import { FIGHTER_ANIMATIONS, FIGHTER_ATLAS_FRAME, SpriteAtlasRenderer } from "../src/sprite-animation.js";
+import { FIGHTER_ANIMATIONS, FIGHTER_ATLAS_FRAME, FIGHTER_ATLAS_PATHS, SpriteAtlasRenderer } from "../src/sprite-animation.js";
 
 test("sprite atlas contract defines distinct timed combat animation rows", () => {
   assert.deepEqual(FIGHTER_ATLAS_FRAME, { width: 192, height: 192, columns: 8 });
@@ -11,6 +11,10 @@ test("sprite atlas contract defines distinct timed combat animation rows", () =>
   }
   assert.equal(FIGHTER_ANIMATIONS.idle.loop, true);
   assert.equal(FIGHTER_ANIMATIONS.attack.loop, false);
+  assert.equal(Object.keys(FIGHTER_ATLAS_PATHS).length, 8);
+  for (const [id, path] of Object.entries(FIGHTER_ATLAS_PATHS)) {
+    assert.match(path, new RegExp("/assets/fighters/" + id + "\\\\.svg$"));
+  }
 });
 
 test("sprite renderer safely falls back when a fighter atlas is not available", () => {
