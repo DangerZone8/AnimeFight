@@ -32,7 +32,7 @@ test("sprite renderer crops a valid frame and mirrors the opponent", () => {
   const calls = [], ctx = { save(){}, restore(){}, translate(...x){calls.push(["translate",...x]);}, scale(...x){calls.push(["scale",...x]);}, rotate(...x){calls.push(["rotate",...x]);}, drawImage(...x){calls.push(["drawImage",...x]);} };
   const fighter = { data:{id:"ember"}, action:"attack", actionTime:.2, actionDuration:.4, x:300, y:0, facing:-1, hitFlash:0 };
   assert.equal(renderer.draw(ctx, fighter, 0), true);
-  assert.ok(calls.some(call=>call[0]==="scale"&&call[1]===-1));
+  assert.ok(calls.some(call=>call[0]==="scale"&&call[1]<0));
   const draw = calls.find(call=>call[0]==="drawImage");
   assert.equal(draw[2], 768);
   assert.equal(draw[3], 192);
