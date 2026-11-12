@@ -10,6 +10,8 @@ test("sprite atlas contract defines distinct timed combat animation rows", () =>
     assert.ok(FIGHTER_ANIMATIONS[name].fps > 0);
   }
   assert.equal(FIGHTER_ANIMATIONS.idle.loop, true);
+  assert.equal(FIGHTER_ANIMATIONS.victory.row, 0);
+  assert.equal(FIGHTER_ANIMATIONS.victory.loop, true);
   assert.equal(FIGHTER_ANIMATIONS.attack.loop, false);
   assert.equal(Object.keys(FIGHTER_ATLAS_PATHS).length, 8);
   for (const [id, path] of Object.entries(FIGHTER_ATLAS_PATHS)) {
@@ -51,4 +53,16 @@ test("sprite renderer exposes matching atlas artwork for roster portraits", () =
   assert.equal(calls.length,1);
   assert.deepEqual(calls[0].slice(1,9),[0,0,192,192,12,0,136,130]);
   assert.equal(renderer.drawPortrait(ctx,"missing"),false);
+});
+
+test("victory state uses the existing idle atlas without changing gameplay frames", () => {
+  class FakeImage { constructor(){this.complete=true;this.naturalWidth=1536;this.naturalHeight=1152;} }
+  const renderer=new SpriteAtlasRenderer({ember:"atlas.svg"},FakeImage);
+  renderer.images.set("ember",new FakeImage());
+  const calls=[];
+  const ctx={save(){},restore(){},translate(...v){calls.push(["translate",...v]);},scale(...v){calls.push(["scale",...v]);},rotate(){},drawImage(...v){calls.push(["drawImage",...v]);}};
+  const fighter={data:{id:"ember"},action:"victory",actionTime:0,actionDuration:0,x:100,y:0,facing:1,hitFlash:0};
+  assert.equal(renderer.draw(ctx,fighter,1),true);
+  const frame=calls.find(call=>call[0]==="drawImage");
+  assert.equal(frame[3],0);
 });

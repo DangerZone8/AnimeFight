@@ -4,6 +4,7 @@ const COLUMNS = 8;
 
 export const FIGHTER_ANIMATIONS = Object.freeze({
   idle: { row: 0, frames: 8, fps: 9, loop: true },
+  victory: { row: 0, frames: 8, fps: 6, loop: true },
   attack: { row: 1, frames: 8, fps: 16, loop: false },
   heavy: { row: 1, frames: 8, fps: 18, loop: false },
   kick: { row: 2, frames: 8, fps: 16, loop: false },
@@ -112,6 +113,11 @@ export class SpriteAtlasRenderer {
       rotation = .95 * fall;
       yOffset = 17 * fall;
       scaleY = 1 - .12 * fall;
+    } else if (action === "victory") {
+      yOffset = -5 - Math.sin(elapsed * 3) * 2;
+      rotation = Math.sin(elapsed * 1.7) * .025;
+      scaleX = 1 + Math.sin(elapsed * 3) * .012;
+      scaleY = 1 + Math.sin(elapsed * 3 + .6) * .018;
     } else if (action === "guard") {
       const brace = .5 + .5 * Math.sin(elapsed * 15);
       xOffset = -3 * brace;
